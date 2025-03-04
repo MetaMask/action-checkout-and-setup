@@ -118,7 +118,7 @@ jobs:
 
       - name: Checkout and setup environment
         id: checkout-and-setup
-        uses: ./.github/actions/checkout-and-setup
+        uses: ./
         with:
           is-high-risk-environment: false
 
@@ -138,7 +138,7 @@ jobs:
 
       - name: Checkout and setup environment
         id: checkout-and-setup
-        uses: ./.github/actions/checkout-and-setup
+        uses: ./
         with:
           is-high-risk-environment: 'true'
 
