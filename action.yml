@@ -14,7 +14,7 @@ inputs:
     required: false
     default: ''
   cache-node-modules:
-    description: 'Enable caching for `node_modules` (only applies when is-high-risk-environment is false).'
+    description: 'Enable caching for `node_modules`. Should only be enabled for the `prepare` job, and only applies when is-high-risk-environment is `false`.'
     required: false
     default: 'false'
   node-version:
@@ -29,6 +29,8 @@ outputs:
     value: ${{ steps.download-node-modules.outputs.cache-hit }}
   yarn-cache-hit:
     value: ${{ steps.setup-node.outputs.cache-hit }}
+  node-version:
+    value: ${{ steps.setup-node.outputs.node-version }}
 
 runs:
   using: composite
