@@ -199,7 +199,6 @@ jobs:
       - name: Ensure previous step failed
         if: ${{ steps.checkout-and-setup.outcome == 'success' }}
         run: exit 1
-
 #  TODO: Enable this.
 #  test-do-not-checkout-twice:
 #    runs-on: ubuntu-latest
