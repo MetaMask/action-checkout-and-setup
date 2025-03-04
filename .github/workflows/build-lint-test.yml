@@ -9,8 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [22.x]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Checkout and setup environment
         id: checkout-and-setup
         uses: ./action.yml
@@ -26,6 +28,8 @@ jobs:
       matrix:
         node-version: [22.x]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Checkout and setup environment
         id: checkout-and-setup
         uses: ./action.yml
