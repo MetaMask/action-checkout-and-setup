@@ -1,0 +1,38 @@
+{
+  "name": "@metamask/action-setup-environment",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Set up a Node.js environment with a reusable GitHub Action",
+  "homepage": "https://github.com/MetaMask/action-setup-environment#readme",
+  "bugs": {
+    "url": "https://github.com/MetaMask/action-setup-environment/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MetaMask/action-setup-envrionment.git"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "lint": "yarn lint:misc --check && yarn lint:dependencies --check && yarn lint:changelog",
+    "lint:changelog": "auto-changelog validate --prettier",
+    "lint:dependencies": "depcheck && yarn dedupe",
+    "lint:fix": "yarn lint:misc --write && yarn lint:dependencies && yarn lint:changelog --fix",
+    "lint:misc": "prettier '**/*.json' '**/*.md' '**/*.yml' '**/*.sh' '!.yarnrc.yml' --ignore-path .gitignore --no-error-on-unmatched-pattern"
+  },
+  "devDependencies": {
+    "@lavamoat/allow-scripts": "^3.0.4",
+    "@lavamoat/preinstall-always-fail": "^2.0.0",
+    "@metamask/auto-changelog": "^4.0.0",
+    "depcheck": "^1.4.3",
+    "prettier": "^3.3.3",
+    "prettier-plugin-packagejson": "^2.5.8",
+    "prettier-plugin-sh": "^0.15.0"
+  },
+  "packageManager": "yarn@4.1.1",
+  "lavamoat": {
+    "allowScripts": {
+      "@lavamoat/preinstall-always-fail": false,
+      "vite>esbuild": false
+    }
+  }
+}
