@@ -53,6 +53,7 @@ jobs:
           fi
 
   test-high-risk-after-prepare:
+    name: Test high-risk after prepare
     runs-on: ubuntu-latest
     needs: prepare
     steps:
@@ -73,6 +74,7 @@ jobs:
         run: exit 1
 
   test-low-risk-after-prepare:
+    name: Test low-risk after prepare
     runs-on: ubuntu-latest
     needs: prepare
     steps:
@@ -93,6 +95,7 @@ jobs:
         run: exit 1
 
   test-high-risk-without-prepare:
+    name: Test high-risk without prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,6 +115,7 @@ jobs:
         run: exit 1
 
   test-low-risk-without-prepare:
+    name: Test low-risk without prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -131,6 +135,7 @@ jobs:
         run: exit 1
 
   test-high-risk-string:
+    name: Test high-risk string
     runs-on: ubuntu-latest
     needs: prepare
     steps:
@@ -143,6 +148,7 @@ jobs:
           is-high-risk-environment: 'true'
 
   test-low-risk-string:
+    name: Test low-risk string
     runs-on: ubuntu-latest
     needs: prepare
     steps:
@@ -155,6 +161,7 @@ jobs:
           is-high-risk-environment: 'false'
 
   test-no-input:
+    name: Test no input
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -169,6 +176,7 @@ jobs:
         run: exit 1
 
   test-bad-input-string:
+    name: Test bad input string
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -185,6 +193,7 @@ jobs:
         run: exit 1
 
   test-bad-input-number:
+    name: Test bad input number
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
