@@ -1,15 +1,15 @@
 {
-  "name": "@metamask/action-setup-environment",
+  "name": "@metamask/action-checkout-and-setup",
   "version": "0.0.0",
   "private": true,
-  "description": "Set up a Node.js environment with a reusable GitHub Action",
-  "homepage": "https://github.com/MetaMask/action-setup-environment#readme",
+  "description": "Checkout repository and set up a Node.js environment with a reusable GitHub Action",
+  "homepage": "https://github.com/MetaMask/action-checkout-and-setup#readme",
   "bugs": {
-    "url": "https://github.com/MetaMask/action-setup-environment/issues"
+    "url": "https://github.com/MetaMask/action-checkout-and-setup/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MetaMask/action-setup-envrionment.git"
+    "url": "https://github.com/MetaMask/action-checkout-and-setup.git"
   },
   "sideEffects": false,
   "scripts": {
