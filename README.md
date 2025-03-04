@@ -4,12 +4,34 @@ This TypeScript module is maintained in the style of the MetaMask team.
 
 ## Usage
 
+### Examples
+
+#### High-risk environment
+
 ```yaml
-- name: Checkout and setup environment
-  id: checkout-and-setup
+- name: Checkout and setup high risk environment
   uses: MetaMask/action-checkout-and-setup@v1
   with:
     is-high-risk-environment: true
+```
+
+#### Low-risk environment
+
+```yaml
+- name: Checkout and setup
+  uses: MetaMask/action-checkout-and-setup@v1
+  with:
+    is-high-risk-environment: false
+```
+
+#### Custom ref and fetch depth
+
+```yaml
+- name: Checkout and setup
+  uses: MetaMask/action-checkout-and-setup@v1
+  with:
+    ref: ${{ github.sha }}
+    fetch-depth: 1
 ```
 
 ### Options
@@ -21,6 +43,7 @@ environment. An environment is considered high-risk if (not exhaustive):
 
 - It contains secrets that should not be exposed.
 - It is a production environment, or deploys to a production environment.
+- It creates a build artifact that may be distributed to someone else.
 
 #### `fetch-depth`
 
