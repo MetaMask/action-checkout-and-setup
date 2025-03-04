@@ -208,6 +208,23 @@ jobs:
       - name: Ensure previous step failed
         if: ${{ steps.checkout-and-setup.outcome == 'success' }}
         run: exit 1
+
+  test-custom-node-version:
+    name: Test custom Node.js version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout and setup environment
+        id: checkout-and-setup
+        uses: ./
+        with:
+          is-high-risk-environment: false
+          node-version: 20.x
+
+      - name: Ensure correct Node.js version
+        if: ${{ !contains(steps.checkout-and-setup.outputs.node-version, '20.') }}
+        run: node --version && exit 1
 #  TODO: Enable this.
 #  test-do-not-checkout-twice:
 #    runs-on: ubuntu-latest
