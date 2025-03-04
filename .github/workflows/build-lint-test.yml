@@ -250,4 +250,3 @@ jobs:
       - name: Make sure the Git HEAD did not change
         if: ${{ env.NEW_SHA != env.INITIAL_SHA }}
         run: exit 1
-
