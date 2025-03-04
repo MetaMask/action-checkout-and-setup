@@ -14,7 +14,7 @@ inputs:
     required: false
     default: ''
   cache-node-modules:
-    description: 'Enable caching for `node_modules` (only applies when is-high-risk-environment is false).'
+    description: 'Enable caching for `node_modules`. Should only be enabled for the `prepare` job, and only applies when is-high-risk-environment is `false`.'
     required: false
     default: 'false'
   node-version:
