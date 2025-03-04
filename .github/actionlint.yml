@@ -1,0 +1,6 @@
+paths:
+  .github/workflows/build-lint-test.yml:
+    ignore:
+      # We ignore the "missing input `is-high-risk-environment`" error because
+      # it is used as a test case for the action.
+      - 'missing input "is-high-risk-environment".+'

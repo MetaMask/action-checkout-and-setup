@@ -13,12 +13,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download actionlint
         id: download-actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/7fdc9630cc360ea1a469eed64ac6d78caeda1234/scripts/download-actionlint.bash) 1.6.23
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/7fdc9630cc360ea1a469eed64ac6d78caeda1234/scripts/download-actionlint.bash) 1.7.7
         shell: bash
       - name: Check workflow files
-        # We ignore the "missing input `is-high-risk-environment`" error because
-        # it is used in a test workflow.
-        run: ${{ steps.download-actionlint.outputs.executable }} -color -ignore 'missing input "is-high-risk-environment"'
+        run: ${{ steps.download-actionlint.outputs.executable }} -color
         shell: bash
 
   build-lint-test:
