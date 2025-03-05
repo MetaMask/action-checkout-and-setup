@@ -30,16 +30,15 @@ jobs:
         shell: bash
         if: inputs.slack-subteam != ''
         run: |
-          NAME_TEXT=$(jq --raw-output '.name' package.json)
-          NAME_TEXT_STRIPPED="${NAME_TEXT#@}"
-          NAME_TEXT_WITH_HASH="$NAME_TEXT_STRIPPED@${GITHUB_SHA:0:7}"
-          echo "NAME_HASH=$NAME_TEXT_WITH_HASH" >> "$GITHUB_OUTPUT"
+          NAME_VERSION_TEXT=$(jq --raw-output '.name + "@" + .version' package.json )
+          NAME_VERSION_TEXT_STRIPPED="${NAME_VERSION_TEXT#@}"
+          echo "NAME_VERSION=$NAME_VERSION_TEXT_STRIPPED" >> "$GITHUB_OUTPUT"
       - id: final-text
         name: Get Slack final text
         shell: bash
         if: inputs.slack-subteam != ''
         run: |
-          DEFAULT_TEXT="\`${{ steps.name-hash.outputs.NAME_HASH }}\` is awaiting deployment :rocket: \n <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/|→ Click here to review deployment>"
+          DEFAULT_TEXT="\`${{ steps.name-hash.outputs.NAME_VERSION }}\` is awaiting deployment :rocket: \n <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/|→ Click here to review deployment>"
           SUBTEAM_TEXT="${{ inputs.slack-subteam }}"
           FINAL_TEXT="$DEFAULT_TEXT"
           if [[ ! "$SUBTEAM_TEXT" == "" ]]; then
