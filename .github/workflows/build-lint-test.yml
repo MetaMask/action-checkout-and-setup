@@ -10,6 +10,9 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x]
+    needs:
+      - test-high-risk-without-prepare
+      - test-low-risk-without-prepare
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
