@@ -6,7 +6,6 @@ on:
       slack-channel:
         required: false
         type: string
-        default: 'metamask-dev'
       slack-icon-url:
         required: false
         type: string
@@ -58,12 +57,12 @@ jobs:
             {
               "text": "${{ steps.final-text.outputs.FINAL_TEXT }}",
               "icon_url": "${{ inputs.slack-icon-url }}",
-              "username": "${{ inputs.slack-username }}",
-              "channel": "#${{ inputs.slack-channel }}"
+              "username": "${{ inputs.slack-username }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
 
   publish-release:
     name: Publish release
