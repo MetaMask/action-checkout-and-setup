@@ -3,9 +3,6 @@ name: Publish Release
 on:
   workflow_call:
     inputs:
-      slack-channel:
-        required: false
-        type: string
       slack-icon-url:
         required: false
         type: string
