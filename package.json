@@ -1,6 +1,6 @@
 {
   "name": "@metamask/action-checkout-and-setup",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "private": true,
   "description": "Checkout repository and set up a Node.js environment with a reusable GitHub Action",
   "homepage": "https://github.com/MetaMask/action-checkout-and-setup#readme",
