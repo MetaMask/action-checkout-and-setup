@@ -195,9 +195,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/action-setup-environment@workspace:.":
+"@metamask/action-checkout-and-setup@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@metamask/action-setup-environment@workspace:."
+  resolution: "@metamask/action-checkout-and-setup@workspace:."
   dependencies:
     "@lavamoat/allow-scripts": "npm:^3.0.4"
     "@lavamoat/preinstall-always-fail": "npm:^2.0.0"

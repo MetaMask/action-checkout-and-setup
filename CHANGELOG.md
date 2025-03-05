@@ -7,4 +7,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/MetaMask/action-setup-envrionment/
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/
