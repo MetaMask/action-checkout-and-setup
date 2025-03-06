@@ -92,7 +92,16 @@ runs:
     # run the yarn install
     - name: Install dependencies
       if: ${{ steps.download-node-modules.outputs.cache-hit != 'true'}}
-      run: yarn --immutable
+      run: |
+        for i in $(seq 1 3); do
+          if yarn --immutable; then
+            exit 0
+          else
+            echo "Yarn install failed on attempt $i, retrying."
+          fi
+        done
+        echo "Yarn install failed after 3 attempts."
+        exit 1
       shell: bash
 
     # Save the `node_modules` cache if it's not a high-risk environment and
