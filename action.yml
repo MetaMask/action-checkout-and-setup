@@ -95,6 +95,14 @@ runs:
       run: yarn --immutable
       shell: bash
 
+    # If the node_modules cache was found, run `yarn allow-scripts`. This is
+    # typically run as part of the Yarn install, so we only need to run it if
+    # we're restoring the cache.
+    - name: Run `allow-scripts`
+      if: ${{ steps.download-node-modules.outputs.cache-hit == 'true'}}
+      run: yarn allow-scripts || true
+      shell: bash
+
     # Save the `node_modules` cache if it's not a high-risk environment and
     # caching is enabled.
     - name: Cache workspace
