@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1]
 
-### Uncategorized
+### Fixed
 
 - Run `allow-scripts` when restoring from cache ([#11](https://github.com/MetaMask/action-checkout-and-setup/pull/11))
-- Announce version in publish workflow ([#10](https://github.com/MetaMask/action-checkout-and-setup/pull/10))
 
 ## [1.0.0]
 
