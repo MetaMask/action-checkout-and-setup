@@ -13,7 +13,6 @@ fi
 
 MAJOR_VERSION_TAG="v${RELEASE_VERSION/\.*/}"
 
-git fetch --tags
 git config user.name github-actions
 git config user.email github-actions@github.com
 
