@@ -22,7 +22,7 @@ inputs:
     required: false
     default: ''
   skip-allow-scripts:
-    description: 'Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it will save 10-15 seconds.'
+    description: 'Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it may save some time.'
     required: false
     default: 'false'
 
