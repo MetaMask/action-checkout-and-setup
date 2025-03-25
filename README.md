@@ -71,6 +71,12 @@ The version of Node.js to use.
 
 Defaults to the version specified in the `.nvmrc` file.
 
+#### `skip-allow-scripts`
+
+If set to `true`, the action will skip the `yarn allow-scripts` step. This can save time if your job does not require this step.
+
+Defaults to `false`.
+
 ## Contributing
 
 ### Setup
