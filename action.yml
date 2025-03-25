@@ -21,6 +21,10 @@ inputs:
     description: 'Node.js version to use. If not provided, will use the version specified in the `.nvmrc` file.'
     required: false
     default: ''
+  skip-allow-scripts:
+    description: 'Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it will save 10-15 seconds.'
+    required: false
+    default: 'false'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -99,7 +103,7 @@ runs:
     # typically run as part of the Yarn install, so we only need to run it if
     # we're restoring the cache.
     - name: Run `allow-scripts`
-      if: ${{ steps.download-node-modules.outputs.cache-hit == 'true'}}
+      if: ${{ inputs.skip-allow-scripts != 'true' && steps.download-node-modules.outputs.cache-hit == 'true'}}
       run: yarn allow-scripts || true
       shell: bash
 
