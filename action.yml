@@ -96,16 +96,23 @@ runs:
     # run the yarn install
     - name: Install dependencies
       if: ${{ steps.download-node-modules.outputs.cache-hit != 'true'}}
-      run: yarn --immutable
-      shell: bash
+      uses: MetaMask/action-retry-command@v1
+      with:
+        command: yarn --immutable
+        shell: bash
 
     # If the node_modules cache was found, run `yarn allow-scripts`. This is
     # typically run as part of the Yarn install, so we only need to run it if
     # we're restoring the cache.
     - name: Run `allow-scripts`
       if: ${{ inputs.skip-allow-scripts != 'true' && steps.download-node-modules.outputs.cache-hit == 'true'}}
-      run: yarn allow-scripts || true
-      shell: bash
+      uses: MetaMask/action-retry-command@v1
+      with:
+        command: |
+          if yarn bin allow-scripts &>/dev/null; then
+            yarn allow-scripts
+          fi
+        shell: bash
 
     # Save the `node_modules` cache if it's not a high-risk environment and
     # caching is enabled.
