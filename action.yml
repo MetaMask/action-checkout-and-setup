@@ -58,14 +58,14 @@ runs:
       uses: actions/checkout@v4
       if: ${{ hashFiles('.git') == '' }}
       with:
-      fetch-depth: ${{ inputs.fetch-depth }}
-      ref: ${{ inputs.ref }}
+        fetch-depth: ${{ inputs.fetch-depth }}
+        ref: ${{ inputs.ref }}
 
     # Get the commit hash of the checked out commit regardless of whether it
     # was checked out in the previous step or existed before.
     - name: Get commit hash
       id: get-commit-hash
-      run: echo "actual_commit_hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      run: echo "actual-commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - run: corepack enable
@@ -78,8 +78,8 @@ runs:
       id: download-node-modules
       uses: actions/cache/restore@v4
       with:
-      path: ./node_modules
-      key: node-modules-${{ steps.get-commit-hash.outputs.actual_commit_hash }}
+        path: ./node_modules
+        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -121,4 +121,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ./node_modules
-        key: node-modules-${{ steps.get-commit-hash.outputs.actual_commit_hash }}
+        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
