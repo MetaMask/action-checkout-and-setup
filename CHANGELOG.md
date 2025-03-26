@@ -9,12 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0]
 
-### Uncategorized
+### Added
 
-- fix: if we want to allow pre-existing git checkout state, we must read its commit hash ([#15](https://github.com/MetaMask/action-checkout-and-setup/pull/15))
+- Add `skip-allow-scripts` option ([#14](https://github.com/MetaMask/action-checkout-and-setup/pull/14))
+  - This can speed up the action by skipping the `allow-scripts` step, if it's not required.
+
+### Changed
+
 - Use `MetaMask/action-retry-command` for possible flaky steps ([#16](https://github.com/MetaMask/action-checkout-and-setup/pull/16))
-- Add skip-allow-scripts ([#14](https://github.com/MetaMask/action-checkout-and-setup/pull/14))
-- Ensure tags are fetched in release workflow ([#13](https://github.com/MetaMask/action-checkout-and-setup/pull/13))
+
+### Fixed
+
+- Use current commit hash for cache key instead of `github.sha` ([#15](https://github.com/MetaMask/action-checkout-and-setup/pull/15))
 
 ## [1.0.1]
 
