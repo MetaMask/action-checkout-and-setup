@@ -106,7 +106,6 @@ runs:
     # we're restoring the cache.
     - name: Run `allow-scripts`
       if: ${{ inputs.skip-allow-scripts != 'true' && steps.download-node-modules.outputs.cache-hit == 'true'}}
-      run: yarn allow-scripts || true
       uses: MetaMask/action-retry-command@v1
       with:
         command: |
