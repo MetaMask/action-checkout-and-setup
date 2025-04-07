@@ -78,7 +78,7 @@ runs:
       id: download-node-modules
       uses: actions/cache/restore@v4
       with:
-        path: ./node_modules
+        path: '**/node_modules'
         key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
 
     - name: Set up Node.js
@@ -127,5 +127,5 @@ runs:
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
       uses: actions/cache/save@v4
       with:
-        path: ./node_modules
+        path: '**/node_modules'
         key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
