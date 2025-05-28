@@ -79,7 +79,8 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
+        key: |
+          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash && steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -107,6 +108,7 @@ runs:
       with:
         command: yarn --immutable
         shell: bash
+        max-retries: 5
 
     # If the node_modules cache was found, run `yarn allow-scripts`. This is
     # typically run as part of the Yarn install, so we only need to run it if
@@ -128,4 +130,5 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
+        key: |
+          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash && steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
