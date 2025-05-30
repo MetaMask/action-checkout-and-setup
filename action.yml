@@ -80,7 +80,7 @@ runs:
       with:
         path: '**/node_modules'
         key: |
-          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash && steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
+          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -131,4 +131,4 @@ runs:
       with:
         path: '**/node_modules'
         key: |
-          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash && steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
+          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
