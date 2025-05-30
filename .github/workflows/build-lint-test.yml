@@ -93,8 +93,8 @@ jobs:
         if: ${{ !steps.checkout-and-setup.outputs.node-modules-cache-hit }}
         run: exit 1
 
-      - name: Ensure `.yarn` cache was not used
-        if: ${{ steps.checkout-and-setup.outputs.yarn-cache-hit }}
+      - name: Ensure .yarn cache was used
+        if: ${{ !steps.checkout-and-setup.outputs.yarn-cache-hit }}
         run: exit 1
 
   test-high-risk-without-prepare:
