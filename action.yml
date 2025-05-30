@@ -25,6 +25,10 @@ inputs:
     description: 'Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it may save some time.'
     required: false
     default: 'false'
+  yarn-install-max-retries:
+    description: 'Maximum number of retries for the `yarn --immutable` install command.'
+    required: false
+    default: '5'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -109,7 +113,7 @@ runs:
       with:
         command: yarn --immutable
         shell: bash
-        max-retries: 5
+        max-retries: ${{ inputs.yarn-install-max-retries }}
 
     # If the node_modules cache was found, run `yarn allow-scripts`. This is
     # typically run as part of the Yarn install, so we only need to run it if
