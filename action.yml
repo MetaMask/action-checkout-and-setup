@@ -25,6 +25,10 @@ inputs:
     description: 'Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it may save some time.'
     required: false
     default: 'false'
+  yarn-install-max-retries:
+    description: 'Maximum number of retries for the `yarn --immutable` install command.'
+    required: false
+    default: '5'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -87,17 +91,19 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
-        # If the `node_modules` cache was not found, use `setup-node` cache to
-        # restore the `.yarn` folder.
-        # Notes: if this is always set to 'yarn':
-        #   1) Will not be secure for high-risk environment.
-        #   2) Self-hosted runners will fail to find this cache, and then fail
-        #      on the 'Post Setup environment' step
-        #   3) This action will run a few seconds slower, because when we
-        #      restore the `node_modules` folder from cache, there's no need to
-        #      download the `.yarn` folder too
+        # Always use setup-node's cache for Yarn in non-high-risk environments.
+        # This ensures Yarn is correctly installed/restored by setup-node, preventing
+        # Corepack from attempting to download Yarn and hitting rate limits.
+        # Notes on this approach:
+        #   1) Security for high-risk environments is maintained: If 'is-high-risk-environment'
+        #      is 'true', setup-node's caching is disabled (evaluates to '').
+        #   2) Self-hosted runner compatibility: actions/setup-node is expected to handle cache
+        #      misses gracefully. If issues arise, they might be specific to runner configuration.
+        #   3) Performance: While there might be a slight overhead if node_modules is already cached,
+        #      the reliability gained by consistently caching Yarn via setup-node and avoiding
+        #      rate-limit failures outweighs this. The .yarn folder is relatively small.
         # (GHA does not allow the : ? ternary operator, you must write && ||)
-        cache: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) && 'yarn' || '' }}
+        cache: ${{ inputs.is-high-risk-environment != 'true' && 'yarn' || '' }}
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
@@ -107,6 +113,7 @@ runs:
       with:
         command: yarn --immutable
         shell: bash
+        max-retries: ${{ inputs.yarn-install-max-retries }}
 
     # If the node_modules cache was found, run `yarn allow-scripts`. This is
     # typically run as part of the Yarn install, so we only need to run it if
