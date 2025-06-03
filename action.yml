@@ -72,7 +72,7 @@ runs:
       run: echo "actual-commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       shell: bash
 
-    - run: corepack enable
+    - run: COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=1 corepack enable
       shell: bash
 
     # In a low-risk environment, try to download cache of `node_modules`, if it
@@ -83,7 +83,8 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
+        key: |
+          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash && steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -91,19 +92,17 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
-        # Always use setup-node's cache for Yarn in non-high-risk environments.
-        # This ensures Yarn is correctly installed/restored by setup-node, preventing
-        # Corepack from attempting to download Yarn and hitting rate limits.
-        # Notes on this approach:
-        #   1) Security for high-risk environments is maintained: If 'is-high-risk-environment'
-        #      is 'true', setup-node's caching is disabled (evaluates to '').
-        #   2) Self-hosted runner compatibility: actions/setup-node is expected to handle cache
-        #      misses gracefully. If issues arise, they might be specific to runner configuration.
-        #   3) Performance: While there might be a slight overhead if node_modules is already cached,
-        #      the reliability gained by consistently caching Yarn via setup-node and avoiding
-        #      rate-limit failures outweighs this. The .yarn folder is relatively small.
+        # If the `node_modules` cache was not found, use `setup-node` cache to
+        # restore the `.yarn` folder.
+        # Notes: if this is always set to 'yarn':
+        #   1) Will not be secure for high-risk environment.
+        #   2) Self-hosted runners will fail to find this cache, and then fail
+        #      on the 'Post Setup environment' step
+        #   3) This action will run a few seconds slower, because when we
+        #      restore the `node_modules` folder from cache, there's no need to
+        #      download the `.yarn` folder too
         # (GHA does not allow the : ? ternary operator, you must write && ||)
-        cache: ${{ inputs.is-high-risk-environment != 'true' && 'yarn' || '' }}
+        cache: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) && 'yarn' || '' }}
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
@@ -135,4 +134,5 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
+        key: |
+          node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash && steps.get-commit-hash.outputs.actual-commit-hash || github.sha }}
