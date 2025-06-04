@@ -29,6 +29,10 @@ inputs:
     description: 'Maximum number of retries for the `yarn --immutable` install command.'
     required: false
     default: '5'
+  yarn-custom-url:
+    description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack. For CI testing.'
+    required: false
+    default: ''
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -72,11 +76,21 @@ runs:
       run: echo "actual-commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       shell: bash
 
-    # Enable global allow Yarn installation from a custom URL
-    - run: echo "COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=1" >> $GITHUB_ENV
+    - name: Enable global allow Yarn installation from a custom URL
+      if: ${{ inputs.yarn-custom-url != '' }}
+      run: echo "COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=1" >> $GITHUB_ENV
       shell: bash
 
     - run: corepack enable
+      shell: bash
+
+    # Prepare and activate custom Yarn if URL is provided.
+    # This runs *before* setup-node might try to cache a standard Yarn.
+    - name: Prepare and activate custom Yarn
+      if: ${{ inputs.yarn-custom-url != '' }}
+      run: |
+        echo "Preparing and activating custom Yarn from URL: ${{ inputs.yarn-custom-url }}"
+        corepack prepare yarn@${{ inputs.yarn-custom-url }} --activate
       shell: bash
 
     # In a low-risk environment, try to download cache of `node_modules`, if it
