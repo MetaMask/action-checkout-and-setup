@@ -87,8 +87,8 @@ runs:
         COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
         YARN_CUSTOM_URL: ${{ inputs.yarn-custom-url }}
       run: |
-        echo "Preparing and activating custom Yarn from URL: ${{ env.YARN_CUSTOM_URL }}"
-        corepack prepare "yarn@${{ env.YARN_CUSTOM_URL }}" --activate
+        echo "Preparing and activating custom Yarn from URL: $YARN_CUSTOM_URL"
+        corepack prepare "yarn@$YARN_CUSTOM_URL" --activate
       shell: bash
 
     # In a low-risk environment, try to download cache of `node_modules`, if it
