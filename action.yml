@@ -86,7 +86,7 @@ runs:
       env:
         COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
       run: |
-        echo "Preparing and activating custom Yarn from URL: ${YARN_CUSTOM_URL}"
+        echo "Preparing and activating custom Yarn from URL: ${{ inputs.yarn-custom-url }}"
         corepack prepare "yarn@${inputs.yarn-custom-url}" --activate
       shell: bash
 
