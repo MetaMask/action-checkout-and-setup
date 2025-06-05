@@ -82,7 +82,10 @@ runs:
     # Prepare and activate custom Yarn if URL is provided.
     # This runs *before* setup-node might try to cache a standard Yarn.
     - name: Prepare and activate custom Yarn
-      if: ${{ inputs.yarn-custom-url != '' }}
+      if: ${{ env.YARN_CUSTOM_URL }}
+      env:
+        COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
+        YARN_CUSTOM_URL: ${{ inputs.yarn-custom-url }}
       env:
         COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
       run: |
