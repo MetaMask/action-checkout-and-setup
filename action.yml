@@ -25,6 +25,14 @@ inputs:
     description: 'Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it may save some time.'
     required: false
     default: 'false'
+  yarn-install-max-retries:
+    description: 'Maximum number of retries for the `yarn --immutable` install command.'
+    required: false
+    default: 5
+  yarn-custom-url:
+    description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack'
+    required: false
+    default: ''
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -71,6 +79,18 @@ runs:
     - run: corepack enable
       shell: bash
 
+    # Prepare and activate custom Yarn if URL is provided.
+    # This runs *before* setup-node might try to cache a standard Yarn.
+    - name: Prepare and activate custom Yarn
+      if: ${{ env.YARN_CUSTOM_URL }}
+      env:
+        COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
+        YARN_CUSTOM_URL: ${{ inputs.yarn-custom-url }}
+      run: |
+        echo "Preparing and activating custom Yarn from URL: $YARN_CUSTOM_URL"
+        corepack prepare "yarn@$YARN_CUSTOM_URL" --activate
+      shell: bash
+
     # In a low-risk environment, try to download cache of `node_modules`, if it
     # exists. On failure, will run the `yarn` command instead.
     - name: Download node_modules cache
@@ -107,6 +127,7 @@ runs:
       with:
         command: yarn --immutable
         shell: bash
+        max-retries: ${{ inputs.yarn-install-max-retries }}
 
     # If the node_modules cache was found, run `yarn allow-scripts`. This is
     # typically run as part of the Yarn install, so we only need to run it if

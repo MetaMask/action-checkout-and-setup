@@ -34,6 +34,17 @@ This TypeScript module is maintained in the style of the MetaMask team.
     fetch-depth: 1
 ```
 
+#### Custom Yarn URL and Install Retries
+
+```yaml
+- name: Checkout and setup with custom Yarn
+  uses: MetaMask/action-checkout-and-setup@v1
+  with:
+    is-high-risk-environment: false
+    yarn-custom-url: 'https://your-cdn.com/yarn-4.9.1/yarn.js#sha224.abc123'
+    yarn-install-max-retries: 5
+```
+
 ### Options
 
 #### `is-high-risk-environment`
@@ -76,6 +87,18 @@ Defaults to the version specified in the `.nvmrc` file.
 If set to `true`, the action will skip the `yarn allow-scripts` step. This can save time if your job does not require this step.
 
 Defaults to `false`.
+
+#### `yarn-custom-url`
+
+If set, provides a custom URL for a Yarn bundle to be prepared and activated by Corepack. This is useful for CI environments that need to use a self-hosted or alternative Yarn bundle (for example, to avoid rate-limiting from the public Yarn registry).
+
+Defaults to `''` (not set).
+
+#### `yarn-install-max-retries`
+
+Sets the maximum number of retries for the `yarn --immutable` install command. This helps handle transient network errors more gracefully in CI environments.
+
+Defaults to `5`.
 
 ## Contributing
 
