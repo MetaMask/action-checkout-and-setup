@@ -30,7 +30,7 @@ inputs:
     required: false
     default: 5
   yarn-custom-url:
-    description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack. For CI testing.'
+    description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack'
     required: false
     default: ''
 
@@ -74,11 +74,6 @@ runs:
     - name: Get commit hash
       id: get-commit-hash
       run: echo "actual-commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      shell: bash
-
-    - name: Enable unsafe custom Yarn URLs
-      if: ${{ inputs.yarn-custom-url != '' }}
-      run: echo "COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=1" >> $GITHUB_ENV
       shell: bash
 
     - run: corepack enable
