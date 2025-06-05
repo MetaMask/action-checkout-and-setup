@@ -42,7 +42,7 @@ This TypeScript module is maintained in the style of the MetaMask team.
   with:
     is-high-risk-environment: false
     yarn-custom-url: 'https://your-cdn.com/yarn-4.9.1/yarn.js#sha224.abc123'
-    yarn-install-max-retries: '7'
+    yarn-install-max-retries: 5
 ```
 
 ### Options
