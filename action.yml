@@ -101,6 +101,21 @@ runs:
         path: '**/node_modules'
         key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
 
+    # Download yarn offline mirror cache for faster, more reliable installs
+    # This cache contains the actual package tarballs, enabling offline installs
+    - name: Download yarn offline mirror cache
+      if: ${{ inputs.is-high-risk-environment == 'false' && steps.download-node-modules.outputs.cache-hit != 'true' }}
+      id: download-yarn-offline-mirror
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          .yarn-offline-mirror
+          .yarn-cache
+          ~/.yarn/cache
+        key: yarn-offline-mirror-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          yarn-offline-mirror-${{ runner.os }}-
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       id: setup-node
@@ -120,12 +135,19 @@ runs:
         cache: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) && 'yarn' || '' }}
 
     # If the node_modules cache was not found (or it's a high-risk environment),
-    # run the yarn install
+    # run the yarn install. Use --prefer-offline when offline mirror cache is available
     - name: Install dependencies
       if: ${{ steps.download-node-modules.outputs.cache-hit != 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
-        command: yarn --immutable
+        command: |
+          if [[ "${{ steps.download-yarn-offline-mirror.outputs.cache-hit }}" == "true" ]]; then
+            echo "Using offline mirror cache for faster installation"
+            yarn --immutable --prefer-offline
+          else
+            echo "Installing packages from network"
+            yarn --immutable
+          fi
         shell: bash
         max-retries: ${{ inputs.yarn-install-max-retries }}
 
@@ -141,6 +163,18 @@ runs:
             yarn allow-scripts
           fi
         shell: bash
+
+    # Save the yarn offline mirror cache after installation if it wasn't already cached
+    # This enables offline installs for future runs
+    - name: Save yarn offline mirror cache
+      if: ${{ inputs.is-high-risk-environment == 'false' && steps.download-yarn-offline-mirror.outputs.cache-hit != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          .yarn-offline-mirror
+          .yarn-cache
+          ~/.yarn/cache
+        key: yarn-offline-mirror-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
 
     # Save the `node_modules` cache if it's not a high-risk environment and
     # caching is enabled.
