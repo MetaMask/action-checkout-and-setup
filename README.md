@@ -29,6 +29,7 @@ Note: In high-risk environments, all caching is disabled for security reasons.
 ```
 
 In low-risk environments, the action automatically:
+
 - Caches `node_modules` for exact commit matches
 - Caches yarn's offline mirror for faster, offline-capable installations
 - Uses `--prefer-offline` when offline mirror cache is available
@@ -59,15 +60,17 @@ In low-risk environments, the action automatically:
 This action implements a two-tier caching strategy for optimal performance:
 
 #### 1. Node Modules Cache
+
 - **Cache Key**: Based on the exact commit hash
 - **When Used**: In low-risk environments when `cache-node-modules` is enabled
 - **Benefit**: Skips yarn install entirely when dependencies haven't changed
 
 #### 2. Yarn Offline Mirror Cache
+
 - **Cache Key**: Based on `yarn.lock` file content
 - **When Used**: In low-risk environments when node_modules cache misses
 - **What's Cached**:
-  - `.yarn-offline-mirror/` - Package tarballs (*.tgz files)
+  - `.yarn-offline-mirror/` - Package tarballs (\*.tgz files)
   - `.yarn-cache/` - Yarn's local cache
   - `~/.yarn/cache/` - Global yarn cache
 - **Benefits**:
@@ -78,12 +81,12 @@ This action implements a two-tier caching strategy for optimal performance:
 
 #### Cache Performance
 
-| Scenario | Install Time | Network Usage |
-|----------|-------------|---------------|
-| Cold cache (first run) | 3-5 minutes | Full download |
-| Node modules cache hit | 0 seconds | None |
-| Offline mirror cache hit | 30-60 seconds | None |
-| Cache miss | 3-5 minutes | Full download |
+| Scenario                 | Install Time  | Network Usage |
+| ------------------------ | ------------- | ------------- |
+| Cold cache (first run)   | 3-5 minutes   | Full download |
+| Node modules cache hit   | 0 seconds     | None          |
+| Offline mirror cache hit | 30-60 seconds | None          |
+| Cache miss               | 3-5 minutes   | Full download |
 
 ### Options
 
