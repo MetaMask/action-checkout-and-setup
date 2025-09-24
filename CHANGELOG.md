@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0]
 
-### Uncategorized
+### Added
 
 - feat(yarn-local-binary): Allow to use local stored yarn binary ([#28](https://github.com/MetaMask/action-checkout-and-setup/pull/28))
 
