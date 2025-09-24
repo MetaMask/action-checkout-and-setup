@@ -33,6 +33,14 @@ inputs:
     description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack'
     required: false
     default: ''
+  use-yarn-hydrate:
+    description: 'Use yarn hydration command instead of downloading yarn. When true, skips the custom yarn URL download.'
+    required: false
+    default: 'false'
+  yarn-hydrate-command:
+    description: 'Command to run for yarn hydration. Defaults to "yarn-binary:hydrate"'
+    required: false
+    default: 'npm run yarn-binary:hydrate' # Default command in Metamask extension
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -79,16 +87,24 @@ runs:
     - run: corepack enable
       shell: bash
 
-    # Prepare and activate custom Yarn if URL is provided.
+    # Prepare and activate custom Yarn if URL is provided and hydration is not enabled.
     # This runs *before* setup-node might try to cache a standard Yarn.
     - name: Prepare and activate custom Yarn
-      if: ${{ env.YARN_CUSTOM_URL }}
+      if: ${{ env.YARN_CUSTOM_URL && inputs.use-yarn-hydrate != 'true' }}
       env:
         COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
         YARN_CUSTOM_URL: ${{ inputs.yarn-custom-url }}
       run: |
         echo "Preparing and activating custom Yarn from URL: $YARN_CUSTOM_URL"
         corepack prepare "yarn@$YARN_CUSTOM_URL" --activate
+      shell: bash
+
+    # Hydrate yarn using the specified command when hydration is enabled
+    - name: Hydrate Yarn
+      if: ${{ inputs.use-yarn-hydrate == 'true' }}
+      run: |
+        echo "Hydrating Yarn using command: ${{ inputs.yarn-hydrate-command }}"
+        ${{ inputs.yarn-hydrate-command }}
       shell: bash
 
     # In a low-risk environment, try to download cache of `node_modules`, if it
@@ -121,11 +137,12 @@ runs:
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
+    # We set YARN_ENABLE_HARDENED_MODE=0 to disable hardened mode for the yarn install when is done using the tarball, will not affect in case we use the yarn prepare command
     - name: Install dependencies
       if: ${{ steps.download-node-modules.outputs.cache-hit != 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
-        command: yarn --immutable
+        command: YARN_ENABLE_HARDENED_MODE=0 yarn --immutable
         shell: bash
         max-retries: ${{ inputs.yarn-install-max-retries }}
 
