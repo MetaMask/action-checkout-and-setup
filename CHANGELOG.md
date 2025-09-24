@@ -11,8 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- fix(remove-hardened): set back to previous behaviour ([#30](https://github.com/MetaMask/action-checkout-and-setup/pull/30))
-- feat(yarn-local-binary): Allow to use local stored yarn binary ([#28](https://github.com/MetaMask/action-checkout-and-setup/pull/28))
+- Allow to use a local stored yarn binary ([#28](https://github.com/MetaMask/action-checkout-and-setup/pull/28), [#30](https://github.com/MetaMask/action-checkout-and-setup/pull/30))
 
 ## [1.2.0]
 
