@@ -137,12 +137,11 @@ runs:
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
-    # We set YARN_ENABLE_HARDENED_MODE=0 to disable hardened mode for the yarn install when is done using the tarball, will not affect in case we use the yarn prepare command
     - name: Install dependencies
       if: ${{ steps.download-node-modules.outputs.cache-hit != 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
-        command: YARN_ENABLE_HARDENED_MODE=0 yarn --immutable
+        command: yarn --immutable
         shell: bash
         max-retries: ${{ inputs.yarn-install-max-retries }}
 
