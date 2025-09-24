@@ -141,7 +141,7 @@ runs:
       if: ${{ steps.download-node-modules.outputs.cache-hit != 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
-        command: yarn --immutable
+        command: YARN_ENABLE_HARDENED_MODE=0 yarn --immutable
         shell: bash
         max-retries: ${{ inputs.yarn-install-max-retries }}
 
