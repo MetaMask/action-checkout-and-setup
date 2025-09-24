@@ -104,7 +104,7 @@ runs:
       if: ${{ inputs.use-yarn-hydrate == 'true' }}
       run: |
         echo "Hydrating Yarn using command: ${{ inputs.yarn-hydrate-command }}"
-        ls -la && cat package.json && ${{ inputs.yarn-hydrate-command }}
+        ${{ inputs.yarn-hydrate-command }}
       shell: bash
 
     # In a low-risk environment, try to download cache of `node_modules`, if it
