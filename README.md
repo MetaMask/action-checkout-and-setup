@@ -45,6 +45,17 @@ This TypeScript module is maintained in the style of the MetaMask team.
     yarn-install-max-retries: 5
 ```
 
+#### Using Yarn Hydration
+
+```yaml
+- name: Checkout and setup with Yarn hydration
+  uses: MetaMask/action-checkout-and-setup@v1
+  with:
+    is-high-risk-environment: false
+    use-yarn-hydrate: true
+    yarn-hydrate-command: 'yarn-binary:hydrate'  # optional, this is the default
+```
+
 ### Options
 
 #### `is-high-risk-environment`
@@ -99,6 +110,18 @@ Defaults to `''` (not set).
 Sets the maximum number of retries for the `yarn --immutable` install command. This helps handle transient network errors more gracefully in CI environments.
 
 Defaults to `5`.
+
+#### `use-yarn-hydrate`
+
+If set to `true`, the action will use a yarn hydration command instead of downloading yarn from a URL. When enabled, this skips the custom yarn URL download step and runs the specified hydration command instead. This is useful when your repository has a local yarn binary that can be hydrated.
+
+Defaults to `false`.
+
+#### `yarn-hydrate-command`
+
+Specifies the npm script command to run for yarn hydration when `use-yarn-hydrate` is set to `true`. This command should be available in the package.json scripts of the repository using this action.
+
+Defaults to `yarn-binary:hydrate`.
 
 ## Contributing
 
