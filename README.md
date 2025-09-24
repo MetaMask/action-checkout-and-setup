@@ -53,7 +53,7 @@ This TypeScript module is maintained in the style of the MetaMask team.
   with:
     is-high-risk-environment: false
     use-yarn-hydrate: true
-    yarn-hydrate-command: 'yarn-binary:hydrate'  # optional, this is the default
+    yarn-hydrate-command: 'yarn-binary:hydrate' # optional, this is the default
 ```
 
 ### Options
