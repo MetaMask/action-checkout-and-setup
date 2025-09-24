@@ -56,8 +56,6 @@ This TypeScript module is maintained in the style of the MetaMask team.
     yarn-hydrate-command: 'npm run yarn-binary:hydrate' # optional, this is the default
 ```
 
-This approach uses a local yarn binary through npm scripts instead of downloading from a URL, since corepack when `hydrate` a tarball, automatically enables the **hardened mode**, as this variable wouldn't affect when the yarn binary is downloaded from an URL, the `YARN_ENABLE_HARDENED_MODE=0` environment variable was added to the `yarn --inmutable` command.
-
 ### Options
 
 #### `is-high-risk-environment`
