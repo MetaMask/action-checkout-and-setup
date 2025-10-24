@@ -77,13 +77,6 @@ runs:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
 
-    # Get the commit hash of the checked out commit regardless of whether it
-    # was checked out in the previous step or existed before.
-    - name: Get commit hash
-      id: get-commit-hash
-      run: echo "actual-commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      shell: bash
-
     - run: corepack enable
       shell: bash
 
@@ -115,7 +108,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
+        key: node-modules-${{ hashFiles('yarn.lock') }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -165,4 +158,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ steps.get-commit-hash.outputs.actual-commit-hash }}
+        key: node-modules-${{ hashFiles('yarn.lock') }}
