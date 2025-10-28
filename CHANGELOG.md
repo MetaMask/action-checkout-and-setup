@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add parameter for platform specific caching ([#34](https://github.com/MetaMask/action-checkout-and-setup/pull/34))
+  - By default the cache is not platform specific, meaning the same cache is used by different operating systems.
+  - The new behaviour can be enabled by setting `platform-specific-caching` to `true`.
 
 ### Changed
 
