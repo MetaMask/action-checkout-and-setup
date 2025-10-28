@@ -18,7 +18,7 @@ inputs:
     required: false
     default: 'false'
   cache-key-suffix:
-    description: 'Optional suffix to append to the cache key used for node_modules caching. For example useful for appending the runner OS to cache platform specific dependencies."
+    description: 'Optional suffix to append to the cache key used for node_modules caching. For example useful for appending the runner OS to cache platform specific dependencies.'
     required: false
     default: 'default'
   node-version:
