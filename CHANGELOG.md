@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0]
+
+### Added
+
+- Add parameter for platform specific caching ([#34](https://github.com/MetaMask/action-checkout-and-setup/pull/34))
+  - By default the cache is not platform specific, meaning the same cache is used by different operating systems.
+  - The new behaviour can be enabled by setting `platform-specific-caching` to `true`.
+
+### Changed
+
+- Use more efficient cache key ([#33](https://github.com/MetaMask/action-checkout-and-setup/pull/33))
+
 ## [1.3.0]
 
 ### Added
@@ -52,7 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.1.0...v1.1.1
