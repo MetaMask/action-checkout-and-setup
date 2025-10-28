@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0]
 
-### Uncategorized
+### Added
 
-- feat: Add parameter for platform specific caching ([#34](https://github.com/MetaMask/action-checkout-and-setup/pull/34))
-- test: Adjust assertion following cache key changes ([#35](https://github.com/MetaMask/action-checkout-and-setup/pull/35))
+- Add parameter for platform specific caching ([#34](https://github.com/MetaMask/action-checkout-and-setup/pull/34))
+
+### Changed
+
+- Use more efficient cache key ([#33](https://github.com/MetaMask/action-checkout-and-setup/pull/33))
 
 ## [1.3.0]
 
