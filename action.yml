@@ -17,6 +17,10 @@ inputs:
     description: 'Enable caching for `node_modules`. Should only be enabled for the `prepare` job, and only applies when is-high-risk-environment is `false`.'
     required: false
     default: 'false'
+  platform-specific-caching:
+    description: 'Flag to indicate whether operating system specific caches should be used. Useful when dependencies are different across different operating systems.'
+    required: false
+    default: 'false'
   node-version:
     description: 'Node.js version to use. If not provided, will use the version specified in the `.nvmrc` file.'
     required: false
@@ -108,7 +112,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -158,4 +162,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
