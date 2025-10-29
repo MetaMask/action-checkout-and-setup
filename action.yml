@@ -21,6 +21,10 @@ inputs:
     description: 'Flag to indicate whether operating system specific caches should be used. Useful when dependencies are different across different operating systems.'
     required: false
     default: 'false'
+  node-version-specific-caching:
+    description: 'Flag to indicate whether node version specific caches should be used. Useful when dependencies are different across different node versions.'
+    required: false
+    default: 'false'
   node-version:
     description: 'Node.js version to use. If not provided, will use the version specified in the `.nvmrc` file.'
     required: false
@@ -112,7 +116,10 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
+        key: |
+          node-modules-${{ hashFiles('yarn.lock') }}-\
+          ${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}-\
+          ${{ inputs.node-version-specific-caching == 'true' && inputs.node-version || 'default' }}
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -162,4 +169,7 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
+        key: |
+          node-modules-${{ hashFiles('yarn.lock') }}-\
+          ${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}-\
+          ${{ inputs.node-version-specific-caching == 'true' && inputs.node-version || 'default' }}
