@@ -74,7 +74,7 @@ runs:
 
     # Checkout repository only if not already checked out.
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       if: ${{ hashFiles('.git') == '' }}
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
@@ -84,7 +84,7 @@ runs:
       shell: bash
 
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       id: setup-node
       with:
         node-version: ${{ inputs.node-version }}
@@ -127,7 +127,7 @@ runs:
 
     - name: Conditionally restore action/setup-node cache
       if: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       id: restore-setup-node-cache
       with:
         node-version: ${{ steps.setup-node.outputs.node-version }}
