@@ -145,9 +145,9 @@ runs:
       id: restore-setup-node-cache
       with:
         path: ${{ steps.get-cache-info.outputs.yarn-cache-folder }}
-        key: node-cache-${{ runner.os }}-${{ steps.get-cache-info.outputs.os-arch }}-yarn-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-cache-${{ runner.os }}-${{ steps.get-cache-info.outputs.os-arch }}-yarn-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          node-cache-${{ runner.os }}-${{ steps.get-cache-info.outputs.os-arch }}-yarn-${{ steps.setup-node.outputs.node-version }}
+          node-cache-${{ runner.os }}-${{ steps.get-cache-info.outputs.os-arch }}-yarn
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
