@@ -32,7 +32,7 @@ inputs:
   yarn-install-max-retries:
     description: 'Maximum number of retries for the `yarn --immutable` install command.'
     required: false
-    default: 5
+    default: '5'
   yarn-custom-url:
     description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack'
     required: false
@@ -50,10 +50,13 @@ inputs:
 # probably not useful for other workflows.
 outputs:
   node-modules-cache-hit:
+    description: 'Whether the node_modules cache was hit.'
     value: ${{ steps.download-node-modules.outputs.cache-hit }}
   yarn-cache-hit:
+    description: 'Whether the yarn cache was hit.'
     value: ${{ steps.setup-node.outputs.cache-hit }}
   node-version:
+    description: 'The version of Node.js that was used.'
     value: ${{ steps.setup-node.outputs.node-version }}
 
 runs:
