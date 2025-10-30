@@ -32,7 +32,7 @@ inputs:
   yarn-install-max-retries:
     description: 'Maximum number of retries for the `yarn --immutable` install command.'
     required: false
-    default: 5
+    default: '5'
   yarn-custom-url:
     description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack'
     required: false
@@ -50,10 +50,13 @@ inputs:
 # probably not useful for other workflows.
 outputs:
   node-modules-cache-hit:
+    description: 'Whether the node_modules cache was hit.'
     value: ${{ steps.download-node-modules.outputs.cache-hit }}
   yarn-cache-hit:
-    value: ${{ steps.setup-node.outputs.cache-hit }}
+    description: 'Whether the yarn cache was hit.'
+    value: ${{ steps.restore-setup-node-cache.outputs.cache-hit }}
   node-version:
+    description: 'The version of Node.js that was used.'
     value: ${{ steps.setup-node.outputs.node-version }}
 
 runs:
@@ -84,6 +87,18 @@ runs:
     - run: corepack enable
       shell: bash
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      id: setup-node
+      with:
+        node-version: ${{ inputs.node-version }}
+        node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
+
+    - name: Print Node.js version
+      run: |
+        echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
+      shell: bash
+
     # Prepare and activate custom Yarn if URL is provided and hydration is not enabled.
     # This runs *before* setup-node might try to cache a standard Yarn.
     - name: Prepare and activate custom Yarn
@@ -112,14 +127,14 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
+        key: node-modules-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
 
-    - name: Set up Node.js
+    - name: Conditionally restore action/setup-node cache
+      if: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) }}
       uses: actions/setup-node@v4
-      id: setup-node
+      id: restore-setup-node-cache
       with:
-        node-version: ${{ inputs.node-version }}
-        node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
+        node-version: ${{ steps.setup-node.outputs.node-version }}
         # If the `node_modules` cache was not found, use `setup-node` cache to
         # restore the `.yarn` folder.
         # Notes: if this is always set to 'yarn':
@@ -129,8 +144,7 @@ runs:
         #   3) This action will run a few seconds slower, because when we
         #      restore the `node_modules` folder from cache, there's no need to
         #      download the `.yarn` folder too
-        # (GHA does not allow the : ? ternary operator, you must write && ||)
-        cache: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) && 'yarn' || '' }}
+        cache: 'yarn'
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
@@ -162,4 +176,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
+        key: node-modules-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
