@@ -54,7 +54,7 @@ outputs:
     value: ${{ steps.download-node-modules.outputs.cache-hit }}
   yarn-cache-hit:
     description: "Whether the yarn cache was hit."
-    value: ${{ steps.setup-node.outputs.cache-hit }}
+    value: ${{ steps.restore-setup-node-cache.outputs.cache-hit }}
   node-version:
     description: "The version of Node.js that was used."
     value: ${{ steps.setup-node.outputs.node-version }}
