@@ -129,11 +129,12 @@ runs:
         path: '**/node_modules'
         key: node-modules-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
 
-    - name: Get Yarn cache folder
+    - name: Get cache info
       if: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) }}
-      id: get-yarn-cache-folder
+      id: get-cache-info
       run: |
         echo "yarn-cache-folder=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+        echo "os-arch=$(uname -m)" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: Conditionally restore `action/setup-node` cache
@@ -141,10 +142,10 @@ runs:
       uses: actions/cache/restore@v4
       id: restore-setup-node-cache
       with:
-        path: ${{ steps.get-yarn-cache-folder.outputs.yarn-cache-folder }}
-        key: node-cache-${{ runner.os }}-${{ runner.arch }}-yarn-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        path: ${{ steps.get-cache-info.outputs.yarn-cache-folder }}
+        key: node-cache-${{ runner.os }}-${{ steps.get-cache-info.outputs.os-arch }}-yarn-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          node-cache-${{ runner.os }}-${{ runner.arch }}-yarn-${{ steps.setup-node.outputs.node-version }}
+          node-cache-${{ runner.os }}-${{ steps.get-cache-info.outputs.os-arch }}-yarn-${{ steps.setup-node.outputs.node-version }}
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
