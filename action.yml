@@ -132,9 +132,11 @@ runs:
     - name: Get cache info
       if: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) }}
       id: get-cache-info
+      env:
+        RUNNER_ARCH: ${{ runner.arch }}
       run: |
         echo "yarn-cache-folder=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
-        echo "os-arch=$(uname -m)" >> "$GITHUB_OUTPUT"
+        echo "os-arch=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: Conditionally restore `action/setup-node` cache
