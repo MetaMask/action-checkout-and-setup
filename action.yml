@@ -3,60 +3,60 @@ description: Git checkout if not already checked out, get node_modules from cach
 
 inputs:
   is-high-risk-environment:
-    description: "Use a secure setup without caching (true = secure, false = optimized for speed)."
+    description: 'Use a secure setup without caching (true = secure, false = optimized for speed).'
     required: true
   fetch-depth:
-    description: "Depth of the Git history to fetch."
+    description: 'Depth of the Git history to fetch.'
     required: false
-    default: "1"
+    default: '1'
   ref:
-    description: "Branch, tag, or SHA to checkout."
+    description: 'Branch, tag, or SHA to checkout.'
     required: false
-    default: ""
+    default: ''
   cache-node-modules:
-    description: "Enable caching for `node_modules`. Should only be enabled for the `prepare` job, and only applies when is-high-risk-environment is `false`."
+    description: 'Enable caching for `node_modules`. Should only be enabled for the `prepare` job, and only applies when is-high-risk-environment is `false`.'
     required: false
-    default: "false"
+    default: 'false'
   platform-specific-caching:
-    description: "Flag to indicate whether operating system specific caches should be used. Useful when dependencies are different across different operating systems."
+    description: 'Flag to indicate whether operating system specific caches should be used. Useful when dependencies are different across different operating systems.'
     required: false
-    default: "false"
+    default: 'false'
   node-version:
-    description: "Node.js version to use. If not provided, will use the version specified in the `.nvmrc` file."
+    description: 'Node.js version to use. If not provided, will use the version specified in the `.nvmrc` file.'
     required: false
-    default: ""
+    default: ''
   skip-allow-scripts:
-    description: "Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it may save some time."
+    description: 'Skip the `yarn allow-scripts` step. If your job does not need this step, skipping it may save some time.'
     required: false
-    default: "false"
+    default: 'false'
   yarn-install-max-retries:
-    description: "Maximum number of retries for the `yarn --immutable` install command."
+    description: 'Maximum number of retries for the `yarn --immutable` install command.'
     required: false
-    default: "5"
+    default: '5'
   yarn-custom-url:
-    description: "Optional custom URL for a Yarn bundle to be prepared and activated by Corepack"
+    description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack'
     required: false
-    default: ""
+    default: ''
   use-yarn-hydrate:
-    description: "Use yarn hydration command instead of downloading yarn. When true, skips the custom yarn URL download."
+    description: 'Use yarn hydration command instead of downloading yarn. When true, skips the custom yarn URL download.'
     required: false
-    default: "false"
+    default: 'false'
   yarn-hydrate-command:
     description: 'Command to run for yarn hydration. Defaults to "yarn-binary:hydrate"'
     required: false
-    default: "npm run yarn-binary:hydrate" # Default command in Metamask extension
+    default: 'npm run yarn-binary:hydrate' # Default command in Metamask extension
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
 outputs:
   node-modules-cache-hit:
-    description: "Whether the node_modules cache was hit."
+    description: 'Whether the node_modules cache was hit.'
     value: ${{ steps.download-node-modules.outputs.cache-hit }}
   yarn-cache-hit:
-    description: "Whether the yarn cache was hit."
+    description: 'Whether the yarn cache was hit.'
     value: ${{ steps.restore-setup-node-cache.outputs.cache-hit }}
   node-version:
-    description: "The version of Node.js that was used."
+    description: 'The version of Node.js that was used.'
     value: ${{ steps.setup-node.outputs.node-version }}
 
 runs:
@@ -126,7 +126,7 @@ runs:
       id: download-node-modules
       uses: actions/cache/restore@v4
       with:
-        path: "**/node_modules"
+        path: '**/node_modules'
         key: node-modules-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
 
     - name: Conditionally restore action/setup-node cache
@@ -144,7 +144,7 @@ runs:
         #   3) This action will run a few seconds slower, because when we
         #      restore the `node_modules` folder from cache, there's no need to
         #      download the `.yarn` folder too
-        cache: "yarn"
+        cache: 'yarn'
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
@@ -175,5 +175,5 @@ runs:
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
       uses: actions/cache/save@v4
       with:
-        path: "**/node_modules"
+        path: '**/node_modules'
         key: node-modules-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
