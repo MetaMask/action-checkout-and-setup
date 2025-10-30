@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0]
+
+### Changed
+
+- **BREAKING**: Bump `GitHub/actions/*` actions to latest versions ([#41](https://github.com/MetaMask/action-checkout-and-setup/pull/41))
+- **BREAKING**: Always include runner OS and arch in cache key ([#40](https://github.com/MetaMask/action-checkout-and-setup/pull/40))
+- **BREAKING**: Include full Node version in cache key ([#38](https://github.com/MetaMask/action-checkout-and-setup/pull/38))
+
 ## [1.4.0]
 
 ### Added
@@ -64,7 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.4.0...v2.0.0
 [1.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.1.1...v1.2.0
