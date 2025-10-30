@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0]
 
-### Uncategorized
+### Changed
 
-- chore(deps): Bump actions to latest versions ([#41](https://github.com/MetaMask/action-checkout-and-setup/pull/41))
-- refactor!: Always include runner OS and arch in cache key ([#40](https://github.com/MetaMask/action-checkout-and-setup/pull/40))
-- feat!: Include full Node version in cache key ([#38](https://github.com/MetaMask/action-checkout-and-setup/pull/38))
+- **BREAKING**: Bump `GitHub/actions/*` actions to latest versions ([#41](https://github.com/MetaMask/action-checkout-and-setup/pull/41))
+- **BREAKING**: Always include runner OS and arch in cache key ([#40](https://github.com/MetaMask/action-checkout-and-setup/pull/40))
+- **BREAKING**: Include full Node version in cache key ([#38](https://github.com/MetaMask/action-checkout-and-setup/pull/38))
 
 ## [1.4.0]
 
