@@ -144,6 +144,8 @@ runs:
       uses: actions/cache/restore@v4
       id: restore-setup-node-cache
       with:
+        # This replicates the default path, cache key, and restore-keys used by
+        # `actions/setup-node` for Yarn.
         path: ${{ steps.get-cache-info.outputs.yarn-cache-folder }}
         key: node-cache-${{ runner.os }}-${{ steps.get-cache-info.outputs.os-arch }}-yarn-${{ hashFiles('yarn.lock') }}
         restore-keys: |
