@@ -94,6 +94,11 @@ runs:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
 
+    - name: Print Node.js version
+      run: |
+        echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
+      shell: bash
+
     # Prepare and activate custom Yarn if URL is provided and hydration is not enabled.
     # This runs *before* setup-node might try to cache a standard Yarn.
     - name: Prepare and activate custom Yarn
