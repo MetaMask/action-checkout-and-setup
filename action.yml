@@ -129,22 +129,22 @@ runs:
         path: '**/node_modules'
         key: node-modules-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}-${{ inputs.platform-specific-caching == 'true' && runner.os || 'default' }}
 
-    - name: Conditionally restore action/setup-node cache
+    - name: Get Yarn cache folder
       if: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) }}
-      uses: actions/setup-node@v4
+      id: get-yarn-cache-folder
+      run: |
+        echo "yarn-cache-folder=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - name: Conditionally restore `action/setup-node` cache
+      if: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) }}
+      uses: actions/cache/restore@v4
       id: restore-setup-node-cache
       with:
-        node-version: ${{ steps.setup-node.outputs.node-version }}
-        # If the `node_modules` cache was not found, use `setup-node` cache to
-        # restore the `.yarn` folder.
-        # Notes: if this is always set to 'yarn':
-        #   1) Will not be secure for high-risk environment.
-        #   2) Self-hosted runners will fail to find this cache, and then fail
-        #      on the 'Post Setup environment' step
-        #   3) This action will run a few seconds slower, because when we
-        #      restore the `node_modules` folder from cache, there's no need to
-        #      download the `.yarn` folder too
-        cache: 'yarn'
+        path: ${{ steps.get-yarn-cache-folder.outputs.yarn-cache-folder }}
+        key: node-cache-${{ runner.os }}-${{ os.arch }}-yarn-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        restore-keys: |
+          node-cache-${{ runner.os }}-${{ os.arch }}-yarn-${{ steps.setup-node.outputs.node-version }}
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
