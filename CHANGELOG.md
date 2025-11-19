@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1]
+
+### Fixed
+
+- Use environment variables for script inputs ([#44](https://github.com/MetaMask/action-checkout-and-setup/pull/44))
+
 ## [2.0.0]
 
 ### Changed
@@ -72,7 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.4.0...v2.0.0
 [1.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.2.0...v1.3.0
