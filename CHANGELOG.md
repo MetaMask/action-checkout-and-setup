@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1]
+
+### Uncategorized
+
+- chore(deps): bump MetaMask/action-is-release from 1 to 2 ([#46](https://github.com/MetaMask/action-checkout-and-setup/pull/46))
+- ci: Add GitHub Actions to Dependabot config ([#45](https://github.com/MetaMask/action-checkout-and-setup/pull/45))
+- fix: Use environment variables for script inputs ([#44](https://github.com/MetaMask/action-checkout-and-setup/pull/44))
+- chore(deps): bump js-yaml from 3.14.1 to 3.14.2 in the npm_and_yarn group across 1 directory ([#43](https://github.com/MetaMask/action-checkout-and-setup/pull/43))
+
 ## [2.0.0]
 
 ### Changed
@@ -72,7 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.4.0...v2.0.0
 [1.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.2.0...v1.3.0
