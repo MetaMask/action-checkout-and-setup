@@ -76,7 +76,7 @@ runs:
 
     # Checkout repository only if not already checked out.
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       if: ${{ hashFiles('.git') == '' }}
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
