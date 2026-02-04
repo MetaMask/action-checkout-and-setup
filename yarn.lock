@@ -210,8 +210,8 @@ __metadata:
   linkType: soft
 
 "@metamask/auto-changelog@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "@metamask/auto-changelog@npm:5.1.0"
+  version: 5.3.1
+  resolution: "@metamask/auto-changelog@npm:5.3.1"
   dependencies:
     "@octokit/rest": "npm:^20.0.0"
     diff: "npm:^5.0.0"
@@ -222,7 +222,7 @@ __metadata:
     prettier: ">=3.0.0"
   bin:
     auto-changelog: dist/cli.mjs
-  checksum: 10/ee9f651c313a2377a21a304383f56f1872b4ce6411a0b61cf0b70b23bff9d3204332cd5a052cdfcaf363ce15424a7a1fdbde99a6b4352f2472fbe6b6d27c5791
+  checksum: 10/a7cfd0901d56a3ce918793b6648e3b0f153d030616c0d1711e23bffb4ea353468a3d2b69f376a73595b760b4e7ed3d7422d4edc6512528678b30fb7e7a8f2a89
   languageName: node
   linkType: hard
 
