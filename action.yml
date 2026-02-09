@@ -74,14 +74,38 @@ runs:
         fi
       shell: bash
 
-    - name: Download yarn.lock from current commit in attempt to skip setup
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
-      run: wget "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${HEAD_COMMIT_HASH}/yarn.lock"
+    - name: Download .nvmrc from current commit (if it exists) to get node version
+      if: ${{ inputs.node-version == '' }}
+      id: download-nvmrc
+      run: |
+        wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+
+        # If .nvmrc starts with "v", take just the part before the second dot
+        # "v24.13.0" becomes "v24.13"
+        # "v24.13" stays as "v24.13"
+        # "v24" stays as "v24"
+        # "lts/*" is ignored
+        if [[ -f .nvmrc ]]; then
+          NVMRC_NODE_VERSION=$(cat .nvmrc)
+          if [[ "$NVMRC_NODE_VERSION" == v* ]]; then
+            NVMRC_NODE_VERSION=$(echo "$NVMRC_NODE_VERSION" | cut -d. -f1-2)
+            echo "nvmrc-node-version=$NVMRC_NODE_VERSION" >> $GITHUB_OUTPUT
+          fi
+        fi
       shell: bash
       continue-on-error: true
       env:
         OWNER_AND_REPO: ${{ github.repository }}
-        HEAD_COMMIT_HASH: ${{ inputs.ref || github.ref || github.event.pull_request.head.sha || github.sha }}
+        COMMIT_HASH: ${{ inputs.ref || github.ref }}
+
+    - name: Download yarn.lock from current commit in attempt to skip setup
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
+      run: wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${HEAD_COMMIT_HASH}/yarn.lock"
+      shell: bash
+      continue-on-error: true
+      env:
+        OWNER_AND_REPO: ${{ github.repository }}
+        COMMIT_HASH: ${{ inputs.ref || github.ref }}
 
     - name: Try skipping setup if node-modules cache available
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
@@ -90,7 +114,7 @@ runs:
       with:
         path: '**/node_modules'
         # If the yarn.lock download failed, it will try to find `node-modules-Linux-X64-v24.13.0-` and continue peacefully
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ inputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version }}-${{ hashFiles('yarn.lock') }}
         lookup-only: true
 
     # Checkout repository only if not already checked out.
@@ -110,8 +134,9 @@ runs:
       uses: actions/setup-node@v6
       id: setup-node
       with:
-        node-version: ${{ inputs.node-version }}
-        node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
+        node-version: ${{ inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version }}
+        # node-version-file will be used if .nvmrc does not start with "v", for example "lts/*"
+        node-version-file: ${{ (inputs.node-version == '' && steps.download-nvmrc.outputs.nvmrc-node-version == '') && '.nvmrc' || '' }}
 
     - name: Print Node.js version
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
@@ -196,4 +221,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: '**/node_modules'
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.download-nvmrc.outputs.nvmrc-node-version || steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
