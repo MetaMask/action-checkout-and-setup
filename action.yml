@@ -119,7 +119,7 @@ runs:
 
     # Checkout repository only if not already checked out.
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && hashFiles('.git') == '' }}
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
@@ -169,7 +169,7 @@ runs:
     - name: Download node_modules cache
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' }}
       id: download-node-modules
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: '**/node_modules'
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
@@ -218,7 +218,7 @@ runs:
     # caching is enabled.
     - name: Cache workspace
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: '**/node_modules'
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.download-nvmrc.outputs.nvmrc-node-version || steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
