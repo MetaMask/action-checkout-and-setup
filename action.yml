@@ -99,7 +99,8 @@ runs:
         COMMIT_HASH: ${{ inputs.ref || github.ref }}
 
     - name: Download yarn.lock from current commit in attempt to skip setup
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && (inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version) }}
+      id: download-yarn-lock
       run: wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${HEAD_COMMIT_HASH}/yarn.lock"
       shell: bash
       continue-on-error: true
@@ -108,12 +109,11 @@ runs:
         COMMIT_HASH: ${{ inputs.ref || github.ref }}
 
     - name: Try skipping setup if node-modules cache available
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && (inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version) }}
       id: try-skip-setup
       uses: actions/cache/restore@v5
       with:
         path: '**/node_modules'
-        # If the yarn.lock download failed, it will try to find `node-modules-Linux-X64-v24.13.0-` and continue peacefully
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version }}-${{ hashFiles('yarn.lock') }}
         lookup-only: true
 
