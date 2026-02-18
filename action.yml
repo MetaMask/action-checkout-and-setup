@@ -80,20 +80,44 @@ runs:
       run: |
         wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
 
-        # If .nvmrc starts with "v", take just the part before the second dot
+        # If .nvmrc starts with "v" or starts with a number, take just the part before the second dot
         # "v24.13.0" becomes "v24.13"
         # "v24.13" stays as "v24.13"
         # "v24" stays as "v24"
-        # "lts/*" is ignored
+        # "24.13.0" becomes "v24.13.0" and then "v24.13"
+        # "lts/*" becomes the latest LTS version from `nvm ls-remote --lts`, for example "v24.13.0", and then "v24.13"
         if [[ -f .nvmrc ]]; then
-          NVMRC_NODE_VERSION=$(cat .nvmrc)
-          if [[ "$NVMRC_NODE_VERSION" == v* ]]; then
-            NVMRC_NODE_VERSION=$(echo "$NVMRC_NODE_VERSION" | cut -d. -f1-2)
-            echo "nvmrc-node-version=$NVMRC_NODE_VERSION" >> $GITHUB_OUTPUT
+          NVMRC_NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
+
+          # If it starts with a number but not "v", add "v" to the beginning. For example, "24.13.0" becomes "v24.13.0"
+          if [[ "$NVMRC_NODE_VERSION" != v* && "$NVMRC_NODE_VERSION" =~ ^[0-9] ]]; then
+            NVMRC_NODE_VERSION="v$NVMRC_NODE_VERSION"
+          fi
+
+          # If it's "lts/*", fetch "https://nodejs.org/download/release/index.json" and find the first version with "lts" not equal to false
+          # (We cannot run `nvm ls-remote --lts` because nvm is not yet installed)
+          if [[ "$NVMRC_NODE_VERSION" == "lts/*" ]]; then
+            NVMRC_NODE_VERSION=$(curl -s https://nodejs.org/download/release/index.json | jq -r '[.[] | select(.lts != false)][0].version')
+          fi
+
+          # If NVMRC_NODE_VERSION is not empty, cut it to the major and minor version (e.g. "v24.13")
+          NVMRC_NODE_VERSION=$(echo "$NVMRC_NODE_VERSION" | cut -d. -f1-2)
+
+          # Now make sure it starts with "v" and is in the format "vX.Y" or "vX"
+          if [[ "$NVMRC_NODE_VERSION" != v* || ! "$NVMRC_NODE_VERSION" =~ ^v[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "::error::Failed to determine Node.js version from .nvmrc. Please ensure .nvmrc exists and has a version number (with or without a 'v') or says "lts/*", or provide the node-version input directly."
+            exit 1
           fi
         fi
+
+        # If all this fails, fail the whole composite workflow
+        if [[ -z "$NVMRC_NODE_VERSION" ]]; then
+          echo "::error::Failed to determine Node.js version from .nvmrc. Please ensure .nvmrc exists and has a version number (with or without a 'v') or says "lts/*", or provide the node-version input directly."
+          exit 1
+        fi
+
+        echo "nvmrc-node-version=$NVMRC_NODE_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
-      continue-on-error: true
       env:
         OWNER_AND_REPO: ${{ github.repository }}
         COMMIT_HASH: ${{ inputs.ref || github.ref }}
@@ -101,7 +125,7 @@ runs:
     - name: Download yarn.lock from current commit in attempt to skip setup
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && (inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version) }}
       id: download-yarn-lock
-      run: wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${HEAD_COMMIT_HASH}/yarn.lock"
+      run: wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
       shell: bash
       continue-on-error: true
       env:
