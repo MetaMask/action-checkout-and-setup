@@ -51,8 +51,11 @@ outputs:
   yarn-cache-hit:
     description: 'Whether the yarn cache was hit.'
     value: ${{ steps.restore-setup-node-cache.outputs.cache-hit }}
+  computed-node-version:
+    description: 'The truncated version of Node.js that was computed.'
+    value: ${{ steps.compute-node-version.outputs.node-version }}
   node-version:
-    description: 'The version of Node.js that was used.'
+    description: 'The full version of Node.js that was actually used.'
     value: ${{ steps.setup-node.outputs.node-version }}
 
 runs:
@@ -74,56 +77,57 @@ runs:
         fi
       shell: bash
 
-    - name: Download .nvmrc from current commit (if it exists) to get node version
-      if: ${{ inputs.node-version == '' }}
-      id: download-nvmrc
+    - name: Synthesize our node version from inputs.node-version and .nvmrc
+      id: compute-node-version
       run: |
-        wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+        # If inputs.node-version is not provided then use .nvmrc
+        if [[ -z "${{ inputs.node-version }}" ]]; then
+          wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+          NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
+        else
+          NODE_VERSION="${{ inputs.node-version }}"
+        fi
 
-        # If .nvmrc starts with "v" or starts with a number, take just the part before the second dot
+        if [[ -z "$NODE_VERSION" ]]; then
+          echo "::error::You must either have a .nvmrc or provide the node-version input.
+          exit 1
+        fi
+
+        # If NODE_VERSION starts with "v" or starts with a number, take just the part before the second dot
         # "v24.13.0" becomes "v24.13"
         # "v24.13" stays as "v24.13"
         # "v24" stays as "v24"
         # "24.13.0" becomes "v24.13.0" and then "v24.13"
         # "lts/*" becomes the latest LTS version from `nvm ls-remote --lts`, for example "v24.13.0", and then "v24.13"
-        if [[ -f .nvmrc ]]; then
-          NVMRC_NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
 
-          # If it starts with a number but not "v", add "v" to the beginning. For example, "24.13.0" becomes "v24.13.0"
-          if [[ "$NVMRC_NODE_VERSION" != v* && "$NVMRC_NODE_VERSION" =~ ^[0-9] ]]; then
-            NVMRC_NODE_VERSION="v$NVMRC_NODE_VERSION"
-          fi
-
-          # If it's "lts/*", fetch "https://nodejs.org/download/release/index.json" and find the first version with "lts" not equal to false
-          # (We cannot run `nvm ls-remote --lts` because nvm is not yet installed)
-          if [[ "$NVMRC_NODE_VERSION" == "lts/*" ]]; then
-            NVMRC_NODE_VERSION=$(curl -s https://nodejs.org/download/release/index.json | jq -r '[.[] | select(.lts != false)][0].version')
-          fi
-
-          # If NVMRC_NODE_VERSION is not empty, cut it to the major and minor version (e.g. "v24.13")
-          NVMRC_NODE_VERSION=$(echo "$NVMRC_NODE_VERSION" | cut -d. -f1-2)
-
-          # Now make sure it starts with "v" and is in the format "vX.Y" or "vX"
-          if [[ "$NVMRC_NODE_VERSION" != v* || ! "$NVMRC_NODE_VERSION" =~ ^v[0-9]+(\.[0-9]+)?$ ]]; then
-            echo "::error::Failed to determine Node.js version from .nvmrc. Please ensure .nvmrc exists and has a version number (with or without a 'v') or says "lts/*", or provide the node-version input directly."
-            exit 1
-          fi
+        # If it starts with a number but not "v", add "v" to the beginning. For example, "24.13.0" becomes "v24.13.0"
+        if [[ "$NODE_VERSION" != v* && "$NODE_VERSION" =~ ^[0-9] ]]; then
+          NODE_VERSION="v$NODE_VERSION"
         fi
 
-        # If all this fails, fail the whole composite workflow
-        if [[ -z "$NVMRC_NODE_VERSION" ]]; then
-          echo "::error::Failed to determine Node.js version from .nvmrc. Please ensure .nvmrc exists and has a version number (with or without a 'v') or says "lts/*", or provide the node-version input directly."
+        # If it's "lts/*", fetch "https://nodejs.org/download/release/index.json" and find the first version with "lts" not equal to false
+        # (We cannot run `nvm ls-remote --lts` because nvm is not yet installed)
+        if [[ "$NODE_VERSION" == "lts/*" ]]; then
+          NODE_VERSION=$(curl -s https://nodejs.org/download/release/index.json | jq -r '[.[] | select(.lts != false)][0].version')
+        fi
+
+        # Cut NODE_VERSION to the major and minor version (e.g. "v24.13")
+        NODE_VERSION=$(echo "$NODE_VERSION" | cut -d. -f1-2)
+
+        # Now make sure everything happened correctly: it starts with "v" and is in the format "vX.Y" or "vX"
+        if [[ "$NODE_VERSION" != v* || ! "$NODE_VERSION" =~ ^v[0-9]+(\.[0-9]+)?$ ]]; then
+          echo "::error::Failed to determine Node.js version from .nvmrc or inputs.node-version. Version numbers are accepted with or without a 'v', and 'lts/*' is also accepted.
           exit 1
         fi
 
-        echo "nvmrc-node-version=$NVMRC_NODE_VERSION" >> "$GITHUB_OUTPUT"
+        echo "node-version=$NODE_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
       env:
         OWNER_AND_REPO: ${{ github.repository }}
         COMMIT_HASH: ${{ inputs.ref || github.ref }}
 
     - name: Download yarn.lock from current commit in attempt to skip setup
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && (inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version) }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
       id: download-yarn-lock
       run: wget -nv "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
       shell: bash
@@ -133,12 +137,12 @@ runs:
         COMMIT_HASH: ${{ inputs.ref || github.ref }}
 
     - name: Try skipping setup if node-modules cache available
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && (inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version) }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' }}
       id: try-skip-setup
       uses: actions/cache/restore@v5
       with:
         path: '**/node_modules'
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
         lookup-only: true
 
     # Checkout repository only if not already checked out.
@@ -158,9 +162,7 @@ runs:
       uses: actions/setup-node@v6
       id: setup-node
       with:
-        node-version: ${{ inputs.node-version || steps.download-nvmrc.outputs.nvmrc-node-version }}
-        # node-version-file will be used if .nvmrc does not start with "v", for example "lts/*"
-        node-version-file: ${{ (inputs.node-version == '' && steps.download-nvmrc.outputs.nvmrc-node-version == '') && '.nvmrc' || '' }}
+        node-version: ${{ steps.compute-node-version.outputs.node-version }}
 
     - name: Print Node.js version
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
@@ -196,7 +198,7 @@ runs:
       uses: actions/cache/restore@v5
       with:
         path: '**/node_modules'
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
 
     - name: Conditionally restore action/setup-node cache
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' }}
@@ -245,4 +247,4 @@ runs:
       uses: actions/cache/save@v5
       with:
         path: '**/node_modules'
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.download-nvmrc.outputs.nvmrc-node-version || steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
