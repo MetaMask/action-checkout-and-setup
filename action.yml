@@ -89,7 +89,7 @@ runs:
         fi
 
         if [[ -z "$NODE_VERSION" ]]; then
-          echo "::error::You must either have a .nvmrc or provide the node-version input.
+          echo "::error::You must either have a .nvmrc or provide the node-version input."
           exit 1
         fi
 
@@ -116,7 +116,7 @@ runs:
 
         # Now make sure everything happened correctly: it starts with "v" and is in the format "vX.Y" or "vX"
         if [[ "$NODE_VERSION" != v* || ! "$NODE_VERSION" =~ ^v[0-9]+(\.[0-9]+)?$ ]]; then
-          echo "::error::Failed to determine Node.js version from .nvmrc or inputs.node-version. Version numbers are accepted with or without a 'v', and 'lts/*' is also accepted.
+          echo "::error::Failed to determine Node.js version from .nvmrc or inputs.node-version. Version numbers are accepted with or without a 'v', and 'lts/*' is also accepted."
           exit 1
         fi
 
