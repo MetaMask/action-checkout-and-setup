@@ -82,7 +82,14 @@ runs:
       run: |
         # If inputs.node-version is not provided then use .nvmrc
         if [[ -z "${{ inputs.node-version }}" ]]; then
-          wget -nv -O .nvmrc "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+          NVMRC_TMP_FILE="$(mktemp)"
+          if wget -nv -O "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
+            mv "$NVMRC_TMP_FILE" .nvmrc
+          else
+            rm -f "$NVMRC_TMP_FILE"
+            echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+            exit 1
+          fi
           NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
         else
           NODE_VERSION="${{ inputs.node-version }}"
@@ -137,7 +144,16 @@ runs:
     - name: Download yarn.lock from current commit in attempt to skip setup
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
       id: download-yarn-lock
-      run: wget -nv -O yarn.lock "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
+      run: |
+        YARN_LOCK_TMP_FILE="$(mktemp)"
+        if wget -nv -O "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"; then
+          # Only overwrite yarn.lock on a successful download.
+          mv "$YARN_LOCK_TMP_FILE" yarn.lock
+        else
+          rm -f "$YARN_LOCK_TMP_FILE"
+          echo "::warning::Failed to download yarn.lock from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
+          exit 1
+        fi
       shell: bash
       continue-on-error: true
       env:
