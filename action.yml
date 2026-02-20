@@ -47,12 +47,15 @@ inputs:
 outputs:
   node-modules-cache-hit:
     description: 'Whether the node_modules cache was hit.'
-    value: ${{ steps.download-node-modules.outputs.cache-hit }}
+    value: ${{ steps.download-node-modules.outputs.cache-hit || steps.try-skip-setup.outputs.cache-hit }}
   yarn-cache-hit:
     description: 'Whether the yarn cache was hit.'
     value: ${{ steps.restore-setup-node-cache.outputs.cache-hit }}
+  computed-node-version:
+    description: 'The truncated version of Node.js that was computed.'
+    value: ${{ steps.compute-node-version.outputs.node-version }}
   node-version:
-    description: 'The version of Node.js that was used.'
+    description: 'The full version of Node.js that was actually used.'
     value: ${{ steps.setup-node.outputs.node-version }}
 
 runs:
@@ -74,25 +77,120 @@ runs:
         fi
       shell: bash
 
+    - name: Synthesize our node version from inputs.node-version and .nvmrc
+      id: compute-node-version
+      run: |
+        # If inputs.node-version is not provided then use .nvmrc
+        if [[ -z "$INPUT_NODE_VERSION" ]]; then
+          NVMRC_TMP_FILE="$(mktemp)"
+          if wget -nv -O "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
+            mv "$NVMRC_TMP_FILE" .nvmrc
+          else
+            rm -f "$NVMRC_TMP_FILE"
+            echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+            exit 1
+          fi
+          NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
+        else
+          NODE_VERSION="$INPUT_NODE_VERSION"
+        fi
+
+        if [[ -z "$NODE_VERSION" ]]; then
+          echo "::error::You must either have a .nvmrc or provide the node-version input."
+          exit 1
+        fi
+
+        # If NODE_VERSION starts with "v" or starts with a number, take just the part before the second dot
+        # "v24.13.0" becomes "v24.13"
+        # "v24.13" stays as "v24.13"
+        # "v24" stays as "v24"
+        # "24.13.0" becomes "v24.13.0" and then "v24.13"
+        # "24.x" (with a literal x, not a wildcard) becomes "v24"
+        # "lts/*" becomes the latest LTS version from `nvm ls-remote --lts`, for example "v24.13.0", and then "v24.13"
+
+        # If it starts with a number but not "v", add "v" to the beginning. For example, "24.13.0" becomes "v24.13.0"
+        if [[ "$NODE_VERSION" != v* && "$NODE_VERSION" =~ ^[0-9] ]]; then
+          NODE_VERSION="v$NODE_VERSION"
+        fi
+
+        # Normalize major-range inputs like "24.x" to major-only "v24".
+        # We use the computed version as part of a cache key, and the patch/minor
+        # part of an "X.x" range isn't stable or meaningful for that purpose.
+        if [[ "$NODE_VERSION" =~ ^v([0-9]+)\.x$ ]]; then
+          NODE_VERSION="v${BASH_REMATCH[1]}"
+        fi
+
+        # If it's "lts/*", fetch "https://nodejs.org/download/release/index.json" and find the first version with "lts" not equal to false
+        # (We cannot run `nvm ls-remote --lts` because nvm is not yet installed)
+        if [[ "$NODE_VERSION" == "lts/*" ]]; then
+          NODE_VERSION=$(curl -s https://nodejs.org/download/release/index.json | jq -r '[.[] | select(.lts != false)][0].version')
+        fi
+
+        # Cut NODE_VERSION to the major and minor version (e.g. "v24.13")
+        NODE_VERSION=$(echo "$NODE_VERSION" | cut -d. -f1-2)
+
+        # Now make sure everything happened correctly: it starts with "v" and is in the format "vX.Y" or "vX".
+        if [[ "$NODE_VERSION" != v* || ! "$NODE_VERSION" =~ ^v[0-9]+(\.[0-9]+)?$ ]]; then
+          echo "::error::Failed to determine Node.js version from .nvmrc or inputs.node-version. Version numbers are accepted with or without a 'v', and 'lts/*' is also accepted."
+          exit 1
+        fi
+
+        echo "node-version=$NODE_VERSION" >> "$GITHUB_OUTPUT"
+      shell: bash
+      env:
+        INPUT_NODE_VERSION: ${{ inputs.node-version }}
+        OWNER_AND_REPO: ${{ github.repository }}
+        COMMIT_HASH: ${{ inputs.ref || github.sha }}
+
+    - name: Download yarn.lock from current commit in attempt to skip setup
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
+      id: download-yarn-lock
+      run: |
+        YARN_LOCK_TMP_FILE="$(mktemp)"
+        if wget -nv -O "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"; then
+          # Only overwrite yarn.lock on a successful download.
+          mv "$YARN_LOCK_TMP_FILE" yarn.lock
+        else
+          rm -f "$YARN_LOCK_TMP_FILE"
+          echo "::warning::Failed to download yarn.lock from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
+          exit 1
+        fi
+      shell: bash
+      continue-on-error: true
+      env:
+        OWNER_AND_REPO: ${{ github.repository }}
+        COMMIT_HASH: ${{ inputs.ref || github.sha }}
+
+    - name: Try skipping setup if node-modules cache available
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' }}
+      id: try-skip-setup
+      uses: actions/cache/restore@v5
+      with:
+        path: '**/node_modules'
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        lookup-only: true
+
     # Checkout repository only if not already checked out.
     - name: Checkout repository
-      uses: actions/checkout@v5
-      if: ${{ hashFiles('.git') == '' }}
+      uses: actions/checkout@v6
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && hashFiles('.git') == '' }}
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
 
     - run: corepack enable
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       shell: bash
 
     - name: Set up Node.js
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       uses: actions/setup-node@v6
       id: setup-node
       with:
-        node-version: ${{ inputs.node-version }}
-        node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
+        node-version: ${{ steps.compute-node-version.outputs.node-version }}
 
     - name: Print Node.js version
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       run: |
         echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
       shell: bash
@@ -100,7 +198,7 @@ runs:
     # Prepare and activate custom Yarn if URL is provided and hydration is not enabled.
     # This runs *before* setup-node might try to cache a standard Yarn.
     - name: Prepare and activate custom Yarn
-      if: ${{ env.YARN_CUSTOM_URL && inputs.use-yarn-hydrate != 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && env.YARN_CUSTOM_URL && inputs.use-yarn-hydrate != 'true' }}
       env:
         COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
         YARN_CUSTOM_URL: ${{ inputs.yarn-custom-url }}
@@ -111,7 +209,7 @@ runs:
 
     # Hydrate yarn using the specified command when hydration is enabled
     - name: Hydrate Yarn
-      if: ${{ inputs.use-yarn-hydrate == 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.use-yarn-hydrate == 'true' }}
       run: |
         echo "Hydrating Yarn using command: ${{ inputs.yarn-hydrate-command }}"
         ${{ inputs.yarn-hydrate-command }}
@@ -120,15 +218,15 @@ runs:
     # In a low-risk environment, try to download cache of `node_modules`, if it
     # exists. On failure, will run the `yarn` command instead.
     - name: Download node_modules cache
-      if: ${{ inputs.is-high-risk-environment == 'false' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' }}
       id: download-node-modules
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: '**/node_modules'
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
 
     - name: Conditionally restore action/setup-node cache
-      if: ${{ ( inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' ) }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' }}
       uses: actions/setup-node@v6
       id: restore-setup-node-cache
       with:
@@ -147,7 +245,7 @@ runs:
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
     - name: Install dependencies
-      if: ${{ steps.download-node-modules.outputs.cache-hit != 'true'}}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && steps.download-node-modules.outputs.cache-hit != 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
         command: yarn --immutable
@@ -158,7 +256,7 @@ runs:
     # typically run as part of the Yarn install, so we only need to run it if
     # we're restoring the cache.
     - name: Run `allow-scripts`
-      if: ${{ inputs.skip-allow-scripts != 'true' && steps.download-node-modules.outputs.cache-hit == 'true'}}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.skip-allow-scripts != 'true' && steps.download-node-modules.outputs.cache-hit == 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
         command: |
@@ -170,8 +268,8 @@ runs:
     # Save the `node_modules` cache if it's not a high-risk environment and
     # caching is enabled.
     - name: Cache workspace
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
-      uses: actions/cache/save@v4
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
+      uses: actions/cache/save@v5
       with:
         path: '**/node_modules'
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
