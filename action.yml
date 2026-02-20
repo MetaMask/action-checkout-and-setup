@@ -81,7 +81,7 @@ runs:
       id: compute-node-version
       run: |
         # If inputs.node-version is not provided then use .nvmrc
-        if [[ -z "${{ inputs.node-version }}" ]]; then
+        if [[ -z "$INPUT_NODE_VERSION" ]]; then
           NVMRC_TMP_FILE="$(mktemp)"
           if wget -nv -O "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
             mv "$NVMRC_TMP_FILE" .nvmrc
@@ -92,7 +92,7 @@ runs:
           fi
           NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
         else
-          NODE_VERSION="${{ inputs.node-version }}"
+          NODE_VERSION="$INPUT_NODE_VERSION"
         fi
 
         if [[ -z "$NODE_VERSION" ]]; then
@@ -138,6 +138,7 @@ runs:
         echo "node-version=$NODE_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
       env:
+        INPUT_NODE_VERSION: ${{ inputs.node-version }}
         OWNER_AND_REPO: ${{ github.repository }}
         COMMIT_HASH: ${{ inputs.ref || github.sha }}
 
