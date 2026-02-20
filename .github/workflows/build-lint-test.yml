@@ -15,7 +15,7 @@ jobs:
       - test-low-risk-without-prepare
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Checkout and setup environment
         id: checkout-and-setup
         uses: ./
@@ -32,7 +32,7 @@ jobs:
         node-version: [22.x]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Checkout and setup environment
         id: checkout-and-setup
         uses: ./
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: prepare
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: prepare
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -100,7 +100,7 @@ jobs:
     name: Test high-risk without prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -120,7 +120,7 @@ jobs:
     name: Test low-risk without prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -137,7 +137,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: prepare
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -150,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: prepare
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -162,7 +162,7 @@ jobs:
     name: Test no input
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -177,7 +177,7 @@ jobs:
     name: Test bad input string
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -194,7 +194,7 @@ jobs:
     name: Test bad input number
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -211,7 +211,7 @@ jobs:
     name: Test custom Node.js version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Checkout and setup environment
         id: checkout-and-setup
@@ -228,7 +228,7 @@ jobs:
     name: Test do not checkout twice
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: fe105dad148ae6383a5c7ec77cbe13d67ec98190 # The commit hash when the action was first created
 
