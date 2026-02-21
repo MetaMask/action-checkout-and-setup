@@ -29,18 +29,10 @@ inputs:
     description: 'Maximum number of retries for the `yarn --immutable` install command.'
     required: false
     default: '5'
-  yarn-custom-url:
-    description: 'Optional custom URL for a Yarn bundle to be prepared and activated by Corepack'
+  yarn-tarball:
+    description: 'URL to a Yarn tarball to use instead of the default.'
     required: false
-    default: ''
-  use-yarn-hydrate:
-    description: 'Use yarn hydration command instead of downloading yarn. When true, skips the custom yarn URL download.'
-    required: false
-    default: 'false'
-  yarn-hydrate-command:
-    description: 'Command to run for yarn hydration. Defaults to "yarn-binary:hydrate"'
-    required: false
-    default: 'npm run yarn-binary:hydrate' # Default command in Metamask extension
+    default: '.yarn/yarn-corepack.tgz'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -82,14 +74,17 @@ runs:
       run: |
         # If inputs.node-version is not provided then use .nvmrc
         if [[ -z "$INPUT_NODE_VERSION" ]]; then
-          NVMRC_TMP_FILE="$(mktemp)"
-          if wget -nv -O "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
-            mv "$NVMRC_TMP_FILE" .nvmrc
-          else
-            rm -f "$NVMRC_TMP_FILE"
-            echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
-            exit 1
+          if [[ ! -s .nvmrc ]]; then
+            NVMRC_TMP_FILE="$(mktemp)"
+            if wget -nv -O "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
+              mv "$NVMRC_TMP_FILE" .nvmrc
+            else
+              rm -f "$NVMRC_TMP_FILE"
+              echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+              exit 1
+            fi
           fi
+
           NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
         else
           NODE_VERSION="$INPUT_NODE_VERSION"
@@ -146,14 +141,16 @@ runs:
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
       id: download-yarn-lock
       run: |
-        YARN_LOCK_TMP_FILE="$(mktemp)"
-        if wget -nv -O "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"; then
-          # Only overwrite yarn.lock on a successful download.
-          mv "$YARN_LOCK_TMP_FILE" yarn.lock
-        else
-          rm -f "$YARN_LOCK_TMP_FILE"
-          echo "::warning::Failed to download yarn.lock from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
-          exit 1
+        if [[ ! -s yarn.lock ]]; then
+          YARN_LOCK_TMP_FILE="$(mktemp)"
+          if wget -nv -O "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"; then
+            # Only overwrite yarn.lock on a successful download.
+            mv "$YARN_LOCK_TMP_FILE" yarn.lock
+          else
+            rm -f "$YARN_LOCK_TMP_FILE"
+            echo "::warning::Failed to download yarn.lock from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
+            exit 1
+          fi
         fi
       shell: bash
       continue-on-error: true
@@ -195,25 +192,18 @@ runs:
         echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
       shell: bash
 
-    # Prepare and activate custom Yarn if URL is provided and hydration is not enabled.
-    # This runs *before* setup-node might try to cache a standard Yarn.
-    - name: Prepare and activate custom Yarn
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && env.YARN_CUSTOM_URL && inputs.use-yarn-hydrate != 'true' }}
-      env:
-        COREPACK_ENABLE_UNSAFE_CUSTOM_URLS: 1
-        YARN_CUSTOM_URL: ${{ inputs.yarn-custom-url }}
-      run: |
-        echo "Preparing and activating custom Yarn from URL: $YARN_CUSTOM_URL"
-        corepack prepare "yarn@$YARN_CUSTOM_URL" --activate
-      shell: bash
-
     # Hydrate yarn using the specified command when hydration is enabled
     - name: Hydrate Yarn
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.use-yarn-hydrate == 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       run: |
-        echo "Hydrating Yarn using command: ${{ inputs.yarn-hydrate-command }}"
-        ${{ inputs.yarn-hydrate-command }}
+        # If YARN_TARBALL exists in the file system, hydrate
+        if [ -s "$YARN_TARBALL" ]; then
+          echo "Hydrating Yarn using tarball: $YARN_TARBALL"
+          corepack hydrate "$YARN_TARBALL" --activate
+        fi
       shell: bash
+      env:
+        YARN_TARBALL: ${{ inputs.yarn-tarball }}
 
     # In a low-risk environment, try to download cache of `node_modules`, if it
     # exists. On failure, will run the `yarn` command instead.
