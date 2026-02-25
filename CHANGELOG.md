@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0]
+
+### Changed
+
+- **BREAKING**: Security fix, removes the inputs yarn-custom-url, use-yarn-hydrate, and yarn-hydrate-command -- replaced with yarn-tarball (#57)
+- **BREAKING**: Made things faster when there's a cache hit, but now _requires_ either .nvmrc or inputs.node-version (#54)
+
 ## [2.0.1]
 
 ### Fixed
@@ -78,7 +85,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.1...v3.0.0
 [2.0.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.4.0...v2.0.0
 [1.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v1.3.0...v1.4.0
