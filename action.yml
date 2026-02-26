@@ -175,9 +175,6 @@ runs:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
 
-    - run: corepack enable
-      shell: bash
-
     - name: Set up Node.js
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       uses: actions/setup-node@v6
@@ -189,6 +186,17 @@ runs:
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       run: |
         echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
+      shell: bash
+
+    - run: corepack enable
+      if: ${{ runner.os == 'Windows' || steps.try-skip-setup.outputs.cache-hit != 'true' }}
+      shell: bash
+
+    - name: Print Yarn version
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
+      run: |
+        echo "Using Yarn version:"
+        yarn --version
       shell: bash
 
     # Hydrate yarn using the specified command when hydration is enabled
