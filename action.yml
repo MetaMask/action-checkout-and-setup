@@ -76,7 +76,7 @@ runs:
         if [[ -z "$INPUT_NODE_VERSION" ]]; then
           if [[ ! -s .nvmrc ]]; then
             NVMRC_TMP_FILE="$(mktemp)"
-            if wget -nv -O "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
+            if curl -sSf -o "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
               mv "$NVMRC_TMP_FILE" .nvmrc
             else
               rm -f "$NVMRC_TMP_FILE"
@@ -143,7 +143,7 @@ runs:
       run: |
         if [[ ! -s yarn.lock ]]; then
           YARN_LOCK_TMP_FILE="$(mktemp)"
-          if wget -nv -O "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"; then
+          if curl -sSf -o "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"; then
             # Only overwrite yarn.lock on a successful download.
             mv "$YARN_LOCK_TMP_FILE" yarn.lock
           else
