@@ -176,7 +176,6 @@ runs:
         ref: ${{ inputs.ref }}
 
     - run: corepack enable
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       shell: bash
 
     - name: Set up Node.js
