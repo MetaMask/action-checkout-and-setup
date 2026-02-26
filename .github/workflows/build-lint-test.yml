@@ -6,9 +6,10 @@ on:
 jobs:
   prepare:
     name: Prepare
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [22.x]
     needs:
       - test-high-risk-without-prepare
@@ -56,8 +57,11 @@ jobs:
 
   test-high-risk-after-prepare:
     name: Test high-risk after prepare
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: prepare
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
 
@@ -98,7 +102,10 @@ jobs:
 
   test-high-risk-without-prepare:
     name: Test high-risk without prepare
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
 
@@ -118,7 +125,10 @@ jobs:
 
   test-low-risk-without-prepare:
     name: Test low-risk without prepare
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
 
