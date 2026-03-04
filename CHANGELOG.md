@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.1]
 
-### Uncategorized
+### Fixed
 
-- fix: Fix Windows compatibility by using `curl` instead of `wget` ([#59](https://github.com/MetaMask/action-checkout-and-setup/pull/59))
+- Fix Windows runner compatibility by using `curl` instead of `wget` ([#59](https://github.com/MetaMask/action-checkout-and-setup/pull/59))
 
 ## [3.0.0]
 
