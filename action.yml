@@ -33,6 +33,10 @@ inputs:
     description: 'URL to a Yarn tarball to use instead of the default.'
     required: false
     default: '.yarn/yarn-corepack.tgz'
+  force-setup:
+    description: 'Force the setup steps to run, even if a cache hit occurs. This is useful in cases where you need to run more steps after setup.'
+    required: false
+    default: 'false'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -49,6 +53,9 @@ outputs:
   node-version:
     description: 'The full version of Node.js that was actually used.'
     value: ${{ steps.setup-node.outputs.node-version }}
+  skipped-setup:
+    description: 'Whether the setup steps were skipped due to a cache hit.'
+    value: ${{ steps.try-skip-setup.outputs.cache-hit }}
 
 runs:
   using: composite
@@ -159,7 +166,7 @@ runs:
         COMMIT_HASH: ${{ inputs.ref || github.sha }}
 
     - name: Try skipping setup if node-modules cache available
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && inputs.force-setup != 'true' }}
       id: try-skip-setup
       uses: actions/cache/restore@v5
       with:

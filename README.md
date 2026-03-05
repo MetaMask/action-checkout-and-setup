@@ -45,15 +45,15 @@ This TypeScript module is maintained in the style of the MetaMask team.
     yarn-install-max-retries: 5
 ```
 
-#### Using Yarn Hydration
+#### Force setup
 
 ```yaml
-- name: Checkout and setup with Yarn hydration
+- name: Checkout and setup
   uses: MetaMask/action-checkout-and-setup@v1
   with:
     is-high-risk-environment: false
-    use-yarn-hydrate: true
-    yarn-hydrate-command: 'npm run yarn-binary:hydrate' # optional, this is the default
+    cache-node-modules: true
+    force-setup: true
 ```
 
 ### Options
@@ -117,11 +117,10 @@ If set to `true`, the action will use a yarn hydration command instead of downlo
 
 Defaults to `false`.
 
-#### `yarn-hydrate-command`
+#### `force-setup`
 
-Specifies the full command to run for yarn hydration when `use-yarn-hydrate` is set to `true`. This should be the complete command including `npm run` if executing an npm script (e.g., `npm run yarn-binary:hydrate`). The command should be available in the package.json scripts of the repository using this action.
-
-Defaults to `npm run yarn-binary:hydrate` (the default command used in MetaMask extension).
+If set to `true`, the action will skip the cache and force the setup steps to
+run. This is useful for ensuring that the environment is set up correctly, even if there is a cache hit.
 
 ## Contributing
 
