@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.0]
 
-### Uncategorized
+### Added
 
-- feat: Add `force-setup` option to always perform checkout and setup ([#61](https://github.com/MetaMask/action-checkout-and-setup/pull/61))
+- Add `force-setup` option to always perform checkout and setup ([#61](https://github.com/MetaMask/action-checkout-and-setup/pull/61))
 
 ## [3.0.1]
 
