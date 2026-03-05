@@ -153,9 +153,9 @@ jobs:
         id: checkout-and-setup
         uses: ./
         with:
-          is-high-risk-environment: 'true'
-          cache-node-modules: 'true'
-          force-setup: 'true'
+          is-high-risk-environment: false
+          cache-node-modules: true
+          force-setup: true
 
       - name: Ensure setup was not skipped
         if: ${{ steps.checkout-and-setup.outputs.skipped-setup }}
