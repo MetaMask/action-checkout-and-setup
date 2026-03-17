@@ -204,6 +204,10 @@ runs:
         echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
       shell: bash
 
+    - name: Remove globally installed Yarn
+      run: npm uninstall -g yarn
+      shell: bash
+
     - run: corepack enable
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       shell: bash
