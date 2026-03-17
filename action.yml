@@ -205,6 +205,7 @@ runs:
       shell: bash
 
     - name: Remove globally installed Yarn
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       run: npm uninstall -g yarn
       shell: bash
 
@@ -258,7 +259,7 @@ runs:
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && steps.download-node-modules.outputs.cache-hit != 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
-        command: corepack yarn --immutable
+        command: yarn --immutable
         shell: bash
         max-retries: ${{ inputs.yarn-install-max-retries }}
 
