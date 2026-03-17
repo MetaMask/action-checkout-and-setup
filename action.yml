@@ -169,7 +169,6 @@ runs:
               exit 1
             fi
           fi
-      shell: bash
       continue-on-error: true
       env:
         OWNER_AND_REPO: ${{ github.repository }}
