@@ -254,7 +254,7 @@ runs:
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && steps.download-node-modules.outputs.cache-hit != 'true'}}
       uses: MetaMask/action-retry-command@v1
       with:
-        command: yarn --immutable
+        command: corepack yarn --immutable
         shell: bash
         max-retries: ${{ inputs.yarn-install-max-retries }}
 
