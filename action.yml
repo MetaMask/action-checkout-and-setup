@@ -204,11 +204,6 @@ runs:
         echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
       shell: bash
 
-    - name: Remove globally installed Yarn
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
-      run: npm uninstall -g yarn
-      shell: bash
-
     - run: corepack enable
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       shell: bash
@@ -252,6 +247,10 @@ runs:
         #      restore the `node_modules` folder from cache, there's no need to
         #      download the `.yarn` folder too
         cache: 'yarn'
+
+    - name: Ensure Node is first in PATH
+      run: echo "$(dirname $(which node))" >> "$GITHUB_PATH"
+      shell: bash
 
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
