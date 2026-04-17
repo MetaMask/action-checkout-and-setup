@@ -161,6 +161,48 @@ jobs:
         if: ${{ steps.checkout-and-setup.outputs.skipped-setup }}
         run: exit 1
 
+  test-high-risk-cache-write-only:
+    name: Test high-risk with cache (write-only mode)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Checkout and setup environment
+        id: checkout-and-setup
+        uses: ./
+        with:
+          is-high-risk-environment: true
+          cache-node-modules: true
+
+      - name: Ensure node_modules cache was not read
+        if: ${{ steps.checkout-and-setup.outputs.node-modules-cache-hit }}
+        run: exit 1
+
+      - name: Ensure .yarn cache was not used
+        if: ${{ steps.checkout-and-setup.outputs.yarn-cache-hit }}
+        run: exit 1
+
+  test-low-risk-reads-high-risk-cache:
+    name: Test low-risk reads high-risk cache
+    runs-on: ubuntu-latest
+    needs: test-high-risk-cache-write-only
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Checkout and setup environment
+        id: checkout-and-setup
+        uses: ./
+        with:
+          is-high-risk-environment: false
+
+      - name: Ensure node_modules cache was used
+        if: ${{ !steps.checkout-and-setup.outputs.node-modules-cache-hit }}
+        run: exit 1
+
+      - name: Ensure .yarn cache was not used
+        if: ${{ steps.checkout-and-setup.outputs.yarn-cache-hit }}
+        run: exit 1
+
   test-high-risk-string:
     name: Test high-risk string
     runs-on: ubuntu-latest

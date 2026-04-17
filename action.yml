@@ -14,7 +14,7 @@ inputs:
     required: false
     default: ''
   cache-node-modules:
-    description: 'Enable caching for `node_modules`. Should only be enabled for the `prepare` job, and only applies when is-high-risk-environment is `false`.'
+    description: 'Enable node_modules caching for the prepare job. When is-high-risk-environment is true, only saves (write-only); when false, reads and writes.'
     required: false
     default: 'false'
   node-version:
@@ -65,9 +65,14 @@ runs:
     - name: Enforce required input is either "true" or "false"
       env:
         IS_HIGH_RISK_ENVIRONMENT: ${{ inputs.is-high-risk-environment }}
+        CACHE_NODE_MODULES: ${{ inputs.cache-node-modules }}
       run: |
         if [[ "$IS_HIGH_RISK_ENVIRONMENT" == "true" ]]; then
-          echo 'High-risk environment detected. Disabling cache for security.'
+          if [[ "$CACHE_NODE_MODULES" == "true" ]]; then
+            echo 'High-risk environment detected. Cache reads disabled; cache save enabled (write-only mode).'
+          else
+            echo 'High-risk environment detected. All caching disabled for security.'
+          fi
         elif [[ "$IS_HIGH_RISK_ENVIRONMENT" == "false" ]]; then
           echo 'Low-risk environment detected. Enabling cache for optimized performance.'
         else
@@ -262,10 +267,12 @@ runs:
           fi
         shell: bash
 
-    # Save the `node_modules` cache if it's not a high-risk environment and
-    # caching is enabled.
+    # Save the node_modules cache when caching is enabled.
+    # When is-high-risk-environment is true, the read steps above are skipped
+    # but we still save so that downstream PR jobs can read from the
+    # main-branch cache scope (write-only mode).
     - name: Cache workspace
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.cache-node-modules == 'true' }}
       uses: actions/cache/save@v5
       with:
         path: '**/node_modules'
