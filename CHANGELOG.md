@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0]
+
+### Added
+
+- Allow high-risk the option to save cache without reading cache (#64)
+
 ## [3.1.0]
 
 ### Added
@@ -97,7 +103,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v2.0.1...v3.0.0
