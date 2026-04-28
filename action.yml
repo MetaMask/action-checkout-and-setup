@@ -37,6 +37,10 @@ inputs:
     description: 'Force the setup steps to run, even if a cache hit occurs. This is useful in cases where you need to run more steps after setup.'
     required: false
     default: 'false'
+  use-setup-node-for-cache-fallback:
+    description: 'Attempt to restore cache via actions/setup-node if not found otherwise'
+    required: false
+    default: 'true'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -228,7 +232,7 @@ runs:
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
 
     - name: Conditionally restore action/setup-node cache
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' && inputs.use-setup-node-for-cache-fallback != 'false' }}
       uses: actions/setup-node@v6
       id: restore-setup-node-cache
       with:
