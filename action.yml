@@ -177,8 +177,8 @@ runs:
       with:
         path: |
           .yarn/install-state.gz
-          **/node_modules
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+          node_modules
+        key: node-modules-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
         lookup-only: true
 
     # Checkout repository only if not already checked out.
@@ -229,8 +229,8 @@ runs:
       with:
         path: |
           .yarn/install-state.gz
-          **/node_modules
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+          node_modules
+        key: node-modules-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
 
     - name: Conditionally restore action/setup-node cache
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' }}
@@ -282,5 +282,5 @@ runs:
       with:
         path: |
           .yarn/install-state.gz
-          **/node_modules
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
+          node_modules
+        key: node-modules-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
