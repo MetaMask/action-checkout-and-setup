@@ -88,11 +88,13 @@ runs:
         if [[ -z "$INPUT_NODE_VERSION" ]]; then
           if [[ ! -s .nvmrc ]]; then
             NVMRC_TMP_FILE="$(mktemp)"
-            if curl -sSf -o "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"; then
+            if gh api "repos/${OWNER_AND_REPO}/contents/.nvmrc?ref=${COMMIT_HASH}" \
+              --header "Accept: application/vnd.github.raw+json" \
+              > "$NVMRC_TMP_FILE"; then
               mv "$NVMRC_TMP_FILE" .nvmrc
             else
               rm -f "$NVMRC_TMP_FILE"
-              echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc"
+              echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from ${OWNER_AND_REPO}@${COMMIT_HASH}"
               exit 1
             fi
           fi
@@ -145,6 +147,7 @@ runs:
         echo "node-version=$NODE_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
       env:
+        GH_TOKEN: ${{ github.token }}
         INPUT_NODE_VERSION: ${{ inputs.node-version }}
         OWNER_AND_REPO: ${{ github.repository }}
         COMMIT_HASH: ${{ inputs.ref || github.sha }}
@@ -155,18 +158,21 @@ runs:
       run: |
         if [[ ! -s yarn.lock ]]; then
           YARN_LOCK_TMP_FILE="$(mktemp)"
-          if curl -sSf -o "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"; then
+          if gh api "repos/${OWNER_AND_REPO}/contents/yarn.lock?ref=${COMMIT_HASH}" \
+            --header "Accept: application/vnd.github.raw+json" \
+            > "$YARN_LOCK_TMP_FILE"; then
             # Only overwrite yarn.lock on a successful download.
             mv "$YARN_LOCK_TMP_FILE" yarn.lock
           else
             rm -f "$YARN_LOCK_TMP_FILE"
-            echo "::warning::Failed to download yarn.lock from https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock"
+            echo "::warning::Failed to download yarn.lock from ${OWNER_AND_REPO}@${COMMIT_HASH}"
             exit 1
           fi
         fi
       shell: bash
       continue-on-error: true
       env:
+        GH_TOKEN: ${{ github.token }}
         OWNER_AND_REPO: ${{ github.repository }}
         COMMIT_HASH: ${{ inputs.ref || github.sha }}
 
