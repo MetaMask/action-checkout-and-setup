@@ -90,7 +90,7 @@ runs:
             NVMRC_TMP_FILE="$(mktemp)"
             if gh api "repos/${OWNER_AND_REPO}/contents/.nvmrc?ref=${COMMIT_HASH}" \
               --header "Accept: application/vnd.github.raw+json" \
-              --output "$NVMRC_TMP_FILE"; then
+              > "$NVMRC_TMP_FILE"; then
               mv "$NVMRC_TMP_FILE" .nvmrc
             else
               rm -f "$NVMRC_TMP_FILE"
@@ -160,7 +160,7 @@ runs:
           YARN_LOCK_TMP_FILE="$(mktemp)"
           if gh api "repos/${OWNER_AND_REPO}/contents/yarn.lock?ref=${COMMIT_HASH}" \
             --header "Accept: application/vnd.github.raw+json" \
-            --output "$YARN_LOCK_TMP_FILE"; then
+            > "$YARN_LOCK_TMP_FILE"; then
             # Only overwrite yarn.lock on a successful download.
             mv "$YARN_LOCK_TMP_FILE" yarn.lock
           else
