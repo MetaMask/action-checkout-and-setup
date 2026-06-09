@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0]
+
+### Added
+
+- Add `persist-credentials` input ([#69](https://github.com/MetaMask/action-checkout-and-setup/pull/69))
+  - This is forwarded to `actions/checkout`, and defaults to `false`.
+
+### Fixed
+
+- Restore support for private repositories ([#68](https://github.com/MetaMask/action-checkout-and-setup/pull/68))
+- Include Yarn install state when restoring cache ([#66](https://github.com/MetaMask/action-checkout-and-setup/pull/66))
+
 ## [3.2.0]
 
 ### Added
@@ -103,7 +115,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.0.0...v3.0.1
