@@ -210,8 +210,10 @@ runs:
     - name: Print Node.js version
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       run: |
-        echo "Using Node.js version: ${{ steps.setup-node.outputs.node-version }}"
+        echo "Using Node.js version: $NODE_VERSION"
       shell: bash
+      env:
+        NODE_VERSION: ${{ steps.setup-node.outputs.node-version }}
 
     - run: corepack enable
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
