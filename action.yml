@@ -37,6 +37,10 @@ inputs:
     description: 'Force the setup steps to run, even if a cache hit occurs. This is useful in cases where you need to run more steps after setup.'
     required: false
     default: 'false'
+  persist-credentials:
+    description: 'Whether to persist the GitHub token in the checked-out repository. This is passed to the `actions/checkout` step. Setting this to false can help prevent accidental token leaks, but if your workflow needs to make authenticated GitHub API calls using the checked-out repository, you may need to set this to true (default).'
+    required: false
+    default: 'true'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -194,6 +198,7 @@ runs:
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         ref: ${{ inputs.ref }}
+        persist-credentials: ${{ inputs.persist-credentials }}
 
     - name: Set up Node.js
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
