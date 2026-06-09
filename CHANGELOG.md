@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.3.0]
 
-### Uncategorized
+### Added
 
-- fix: Use environment variable for Node.js version in echo command ([#70](https://github.com/MetaMask/action-checkout-and-setup/pull/70))
-- feat: Add `persist-credentials` input ([#69](https://github.com/MetaMask/action-checkout-and-setup/pull/69))
-- fix: Support private repositories ([#68](https://github.com/MetaMask/action-checkout-and-setup/pull/68))
+- Add `persist-credentials` input ([#69](https://github.com/MetaMask/action-checkout-and-setup/pull/69))
+  - This is forwarded to `actions/checkout`, and defaults to `false`.
+
+### Fixed
+
+- Restore support for private repositories ([#68](https://github.com/MetaMask/action-checkout-and-setup/pull/68))
 - Include Yarn install state when restoring cache ([#66](https://github.com/MetaMask/action-checkout-and-setup/pull/66))
 
 ## [3.2.0]
