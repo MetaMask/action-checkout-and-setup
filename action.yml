@@ -92,9 +92,19 @@ runs:
         if [[ -z "$INPUT_NODE_VERSION" ]]; then
           if [[ ! -s .nvmrc ]]; then
             NVMRC_TMP_FILE="$(mktemp)"
-            if gh api "repos/${OWNER_AND_REPO}/contents/.nvmrc?ref=${COMMIT_HASH}" \
-              --header "Accept: application/vnd.github.raw+json" \
-              > "$NVMRC_TMP_FILE"; then
+
+            # For public repositories, we can download the raw file directly from
+            # the GitHub URL. For private repositories, we need to use the GitHub
+            # CLI to authenticate and download the file. We don't use the GitHub
+            # CLI for public repositories because it's subject to the GitHub REST
+            # API rate limit, while the raw URL is served by a CDN that is not.
+            if [[ "$REPO_VISIBILITY" == "public" ]]; then
+              DOWNLOAD_SUCCEEDED=$(curl -sSf -o "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc" && echo "true" || echo "false")
+            else
+              DOWNLOAD_SUCCEEDED=$(gh api "repos/${OWNER_AND_REPO}/contents/.nvmrc?ref=${COMMIT_HASH}" --header "Accept: application/vnd.github.raw+json" > "$NVMRC_TMP_FILE" && echo "true" || echo "false")
+            fi
+
+            if [[ "$DOWNLOAD_SUCCEEDED" == "true" ]]; then
               mv "$NVMRC_TMP_FILE" .nvmrc
             else
               rm -f "$NVMRC_TMP_FILE"
@@ -155,6 +165,7 @@ runs:
         INPUT_NODE_VERSION: ${{ inputs.node-version }}
         OWNER_AND_REPO: ${{ github.repository }}
         COMMIT_HASH: ${{ inputs.ref || github.sha }}
+        REPO_VISIBILITY: ${{ github.event.repository.visibility }}
 
     - name: Download yarn.lock from current commit in attempt to skip setup
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
@@ -162,9 +173,19 @@ runs:
       run: |
         if [[ ! -s yarn.lock ]]; then
           YARN_LOCK_TMP_FILE="$(mktemp)"
-          if gh api "repos/${OWNER_AND_REPO}/contents/yarn.lock?ref=${COMMIT_HASH}" \
-            --header "Accept: application/vnd.github.raw+json" \
-            > "$YARN_LOCK_TMP_FILE"; then
+
+          # For public repositories, we can download the raw file directly from
+          # the GitHub URL. For private repositories, we need to use the GitHub
+          # CLI to authenticate and download the file. We don't use the GitHub
+          # CLI for public repositories because it's subject to the GitHub REST
+          # API rate limit, while the raw URL is served by a CDN that is not.
+          if [[ "$REPO_VISIBILITY" == "public" ]]; then
+            DOWNLOAD_SUCCEEDED=$(curl -sSf -o "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock" && echo "true" || echo "false")
+          else
+            DOWNLOAD_SUCCEEDED=$(gh api "repos/${OWNER_AND_REPO}/contents/yarn.lock?ref=${COMMIT_HASH}" --header "Accept: application/vnd.github.raw+json" > "$YARN_LOCK_TMP_FILE" && echo "true" || echo "false")
+          fi
+
+          if [[ "$DOWNLOAD_SUCCEEDED" == "true" ]]; then
             # Only overwrite yarn.lock on a successful download.
             mv "$YARN_LOCK_TMP_FILE" yarn.lock
           else
@@ -179,6 +200,7 @@ runs:
         GH_TOKEN: ${{ github.token }}
         OWNER_AND_REPO: ${{ github.repository }}
         COMMIT_HASH: ${{ inputs.ref || github.sha }}
+        REPO_VISIBILITY: ${{ github.event.repository.visibility }}
 
     - name: Try skipping setup if node-modules cache available
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && inputs.force-setup != 'true' }}
