@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1]
+
+### Fixed
+
+- Use raw GitHub URL for public repositories ([#72](https://github.com/MetaMask/action-checkout-and-setup/pull/72))
+  - This solves an issue with rate limit errors caused by using the GitHub API in high-activity public repositories.
+
 ## [3.3.0]
 
 ### Added
@@ -115,7 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.1...HEAD
+[3.3.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.0...v3.3.1
 [3.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.0.1...v3.1.0
