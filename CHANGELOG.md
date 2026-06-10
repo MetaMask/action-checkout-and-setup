@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.3.1]
 
-### Uncategorized
+### Fixed
 
-- fix: Use raw GitHub URL for public repositories ([#72](https://github.com/MetaMask/action-checkout-and-setup/pull/72))
+- Use raw GitHub URL for public repositories ([#72](https://github.com/MetaMask/action-checkout-and-setup/pull/72))
+  - This solves an issue with rate limit errors caused by using the GitHub API in high-activity public repositories.
 
 ## [3.3.0]
 
