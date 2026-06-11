@@ -41,6 +41,10 @@ inputs:
     description: 'Whether to persist the GitHub token in the checked-out repository. This is passed to the `actions/checkout` step. Setting this to false can help prevent accidental token leaks, but if your workflow needs to make authenticated GitHub API calls using the checked-out repository, you may need to set this to true (default).'
     required: false
     default: 'true'
+  skip-install:
+    description: 'Skip all Yarn install steps. The repository is still checked out and Node.js is still set up, but dependencies are not installed.'
+    required: false
+    default: 'false'
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -168,7 +172,7 @@ runs:
         REPO_VISIBILITY: ${{ github.event.repository.visibility }}
 
     - name: Download yarn.lock from current commit in attempt to skip setup
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && inputs.skip-install != 'true' }}
       id: download-yarn-lock
       run: |
         if [[ ! -s yarn.lock ]]; then
@@ -203,7 +207,7 @@ runs:
         REPO_VISIBILITY: ${{ github.event.repository.visibility }}
 
     - name: Try skipping setup if node-modules cache available
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && inputs.force-setup != 'true' }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && inputs.force-setup != 'true' && inputs.skip-install != 'true' }}
       id: try-skip-setup
       uses: actions/cache/restore@v5
       with:
@@ -258,7 +262,7 @@ runs:
     # Yarn install state, if they exist. On failure, will run the `yarn`
     # command instead.
     - name: Download node_modules cache and Yarn install state
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' && inputs.skip-install != 'true' }}
       id: download-node-modules
       uses: actions/cache/restore@v5
       with:
@@ -268,7 +272,7 @@ runs:
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
 
     - name: Conditionally restore action/setup-node cache
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' && inputs.skip-install != 'true' }}
       uses: actions/setup-node@v6
       id: restore-setup-node-cache
       with:
@@ -287,7 +291,7 @@ runs:
     # If the node_modules cache was not found (or it's a high-risk environment),
     # run the yarn install
     - name: Install dependencies
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && steps.download-node-modules.outputs.cache-hit != 'true'}}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' && inputs.skip-install != 'true' }}
       uses: MetaMask/action-retry-command@v1
       with:
         command: yarn --immutable
@@ -298,7 +302,7 @@ runs:
     # typically run as part of the Yarn install, so we only need to run it if
     # we're restoring the cache.
     - name: Run `allow-scripts`
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.skip-allow-scripts != 'true' && steps.download-node-modules.outputs.cache-hit == 'true'}}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.skip-allow-scripts != 'true' && steps.download-node-modules.outputs.cache-hit == 'true' && inputs.skip-install != 'true' }}
       uses: MetaMask/action-retry-command@v1
       with:
         command: |
@@ -312,7 +316,7 @@ runs:
     # but we still save so that downstream PR jobs can read from the
     # main-branch cache scope (write-only mode).
     - name: Cache workspace
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.cache-node-modules == 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.cache-node-modules == 'true' && inputs.skip-install != 'true' }}
       uses: actions/cache/save@v5
       with:
         path: |

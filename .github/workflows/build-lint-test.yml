@@ -295,6 +295,32 @@ jobs:
         if: ${{ !contains(steps.checkout-and-setup.outputs.node-version, '20.') }}
         run: node --version && exit 1
 
+  test-skip-install:
+    name: Test skip-install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout and setup environment
+        id: checkout-and-setup
+        uses: ./
+        with:
+          is-high-risk-environment: false
+          skip-install: true
+
+      - name: Ensure Node.js was set up
+        if: ${{ !steps.checkout-and-setup.outputs.node-version }}
+        run: exit 1
+
+      - name: Ensure dependencies were not installed
+        run: |
+          if [ -d node_modules ]; then
+            echo "node_modules should not exist when skip-install is true"
+            exit 1
+          fi
+
+      - name: Ensure caches were not used
+        if: ${{ steps.checkout-and-setup.outputs.node-modules-cache-hit || steps.checkout-and-setup.outputs.yarn-cache-hit }}
+        run: exit 1
+
   test-do-not-checkout-twice:
     name: Test do not checkout twice
     runs-on: ubuntu-latest
