@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0]
+
+### Added
+
+- Add `skip-install` input ([#74](https://github.com/MetaMask/action-checkout-and-setup/pull/74))
+  - This option can be used to skip installing Yarn dependencies, useful for when Node.js setup is needed, but dependencies are not.
+
 ## [3.3.1]
 
 ### Fixed
@@ -122,7 +129,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.1...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.1...v3.4.0
 [3.3.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.0...v3.3.1
 [3.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.1.0...v3.2.0
