@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.4.0]
 
-### Uncategorized
+### Added
 
-- feat: Add `skip-install` input ([#74](https://github.com/MetaMask/action-checkout-and-setup/pull/74))
+- Add `skip-install` input ([#74](https://github.com/MetaMask/action-checkout-and-setup/pull/74))
+  - This option can be used to skip installing Yarn dependencies, useful for when Node.js setup is needed, but dependencies are not.
 
 ## [3.3.1]
 
