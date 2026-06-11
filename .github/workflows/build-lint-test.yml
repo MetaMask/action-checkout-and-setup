@@ -299,6 +299,8 @@ jobs:
     name: Test skip-install
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+
       - name: Checkout and setup environment
         id: checkout-and-setup
         uses: ./
