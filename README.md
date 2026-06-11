@@ -122,6 +122,15 @@ Defaults to `false`.
 If set to `true`, the action will skip the cache and force the setup steps to
 run. This is useful for ensuring that the environment is set up correctly, even if there is a cache hit.
 
+#### `skip-install`
+
+If set to `true`, the action will skip all Yarn install steps. The repository
+is still checked out and Node.js is still set up, but dependencies are not
+installed. This is useful when your workflow only needs Node.js available and
+manages its own dependency installation.
+
+Defaults to `false`.
+
 ## Contributing
 
 ### Setup
