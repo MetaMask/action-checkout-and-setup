@@ -209,7 +209,7 @@ runs:
     - name: Try skipping setup if node-modules cache available
       if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && inputs.force-setup != 'true' && inputs.skip-install != 'true' }}
       id: try-skip-setup
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: |
           .yarn/install-state.gz
@@ -219,7 +219,7 @@ runs:
 
     # Checkout repository only if not already checked out.
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && hashFiles('.git') == '' }}
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
@@ -264,7 +264,7 @@ runs:
     - name: Download node_modules cache and Yarn install state
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.is-high-risk-environment == 'false' && inputs.skip-install != 'true' }}
       id: download-node-modules
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: |
           .yarn/install-state.gz
@@ -317,7 +317,7 @@ runs:
     # main-branch cache scope (write-only mode).
     - name: Cache workspace
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.cache-node-modules == 'true' && inputs.skip-install != 'true' }}
-      uses: actions/cache/save@v5
+      uses: actions/cache/save@v6
       with:
         path: |
           .yarn/install-state.gz
