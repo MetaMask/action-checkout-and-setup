@@ -20,15 +20,15 @@
     "lint:misc": "prettier '**/*.json' '**/*.md' '**/*.yml' '**/*.sh' '!.yarnrc.yml' --ignore-path .gitignore --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
-    "@lavamoat/allow-scripts": "^3.0.4",
-    "@lavamoat/preinstall-always-fail": "^2.0.0",
-    "@metamask/auto-changelog": "^5.1.0",
-    "depcheck": "^1.4.3",
-    "prettier": "^3.3.3",
-    "prettier-plugin-packagejson": "^2.5.8",
-    "prettier-plugin-sh": "^0.15.0"
+    "@lavamoat/allow-scripts": "^5.0.2",
+    "@lavamoat/preinstall-always-fail": "^3.0.0",
+    "@metamask/auto-changelog": "^6.1.1",
+    "depcheck": "^1.4.7",
+    "prettier": "^3.8.4",
+    "prettier-plugin-packagejson": "^3.0.2",
+    "prettier-plugin-sh": "^0.18.1"
   },
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.16.0",
   "lavamoat": {
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,
