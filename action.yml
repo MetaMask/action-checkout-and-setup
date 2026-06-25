@@ -213,7 +213,7 @@ runs:
       with:
         path: |
           .yarn/install-state.gz
-          **/node_modules
+          node_modules
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
         lookup-only: true
 
@@ -268,7 +268,7 @@ runs:
       with:
         path: |
           .yarn/install-state.gz
-          **/node_modules
+          node_modules
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
 
     - name: Conditionally restore action/setup-node cache
@@ -321,5 +321,5 @@ runs:
       with:
         path: |
           .yarn/install-state.gz
-          **/node_modules
+          node_modules
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
