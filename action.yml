@@ -34,7 +34,7 @@ inputs:
     required: false
     default: '.yarn/yarn-corepack.tgz'
   force-setup:
-    description: 'Force the setup steps to run, even if a cache hit occurs. This is useful in cases where you need to run more steps after setup.'
+    description: 'Force checkout, Node setup, and cache restore to run even if the node_modules cache exists. Use this with cache-node-modules when later steps in the same job need a prepared workspace.'
     required: false
     default: 'false'
   persist-credentials:
@@ -89,35 +89,112 @@ runs:
         fi
       shell: bash
 
+    - name: Download repository metadata from current commit
+      id: download-repository-metadata
+      run: |
+        # Some decisions in this action happen before actions/checkout runs:
+        # choosing a Node.js version, computing cache keys, and deciding whether
+        # a lookup-only node_modules cache hit can skip setup. Download only the
+        # small metadata files those decisions need instead of checking out the
+        # repository early.
+        METADATA_DIR="$RUNNER_TEMP/action-checkout-and-setup-metadata"
+        mkdir -p "$METADATA_DIR"
+
+        download_file() {
+          local file_path="$1"
+          local destination="$2"
+
+          if [[ -s "$destination" ]]; then
+            return 0
+          fi
+
+          # For public repositories, we can download the raw file directly from
+          # the GitHub URL. For private repositories, we need to use the GitHub
+          # CLI to authenticate and download the file. We don't use the GitHub
+          # CLI for public repositories because it's subject to the GitHub REST
+          # API rate limit, while the raw URL is served by a CDN that is not.
+          if [[ "$REPO_VISIBILITY" == "public" ]]; then
+            curl -sSf -o "$destination" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/${file_path}"
+          else
+            gh api "repos/${OWNER_AND_REPO}/contents/${file_path}?ref=${COMMIT_HASH}" --header "Accept: application/vnd.github.raw+json" > "$destination"
+          fi
+        }
+
+        write_output() {
+          echo "$1=$2" >> "$GITHUB_OUTPUT"
+        }
+
+        NVMRC_PATH=""
+        if [[ -s .nvmrc ]]; then
+          NVMRC_PATH=".nvmrc"
+        elif [[ -z "$INPUT_NODE_VERSION" ]]; then
+          # .nvmrc is required only when the caller did not provide node-version.
+          # If we cannot find it locally or at the requested ref, setup-node
+          # cannot be configured correctly, so this failure is fatal.
+          NVMRC_PATH="$METADATA_DIR/.nvmrc"
+          if ! download_file ".nvmrc" "$NVMRC_PATH"; then
+            rm -f "$NVMRC_PATH"
+            echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from ${OWNER_AND_REPO}@${COMMIT_HASH}"
+            exit 1
+          fi
+        fi
+        write_output "nvmrc-path" "$NVMRC_PATH"
+
+        YARN_LOCK_AVAILABLE="false"
+        if [[ -s yarn.lock ]]; then
+          YARN_LOCK_AVAILABLE="true"
+        elif [[ "$IS_HIGH_RISK_ENVIRONMENT" == "false" && "$CACHE_NODE_MODULES" == "true" && "$SKIP_INSTALL" != "true" ]]; then
+          # hashFiles('yarn.lock') can only see files in the workspace, so keep
+          # this download in place instead of the metadata directory. A missing
+          # yarn.lock just disables the lookup-only cache check; the normal
+          # checkout/setup path can still continue.
+          if download_file "yarn.lock" "yarn.lock"; then
+            YARN_LOCK_AVAILABLE="true"
+          else
+            rm -f yarn.lock
+            echo "::warning::Failed to download yarn.lock from ${OWNER_AND_REPO}@${COMMIT_HASH}"
+          fi
+        fi
+        write_output "yarn-lock-available" "$YARN_LOCK_AVAILABLE"
+
+        PACKAGE_JSON_PATH=""
+        if [[ -s package.json ]]; then
+          PACKAGE_JSON_PATH="package.json"
+        elif [[ "$SKIP_INSTALL" != "true" && ( "$IS_HIGH_RISK_ENVIRONMENT" == "false" || "$CACHE_NODE_MODULES" == "true" ) ]]; then
+          # package.json lets us derive shallow workspace node_modules paths
+          # before checkout. This avoids the expensive **/node_modules manifest
+          # walk when saving/restoring the cache. If it is unavailable, we fall
+          # back later to the broad path so the action remains compatible.
+          PACKAGE_JSON_PATH="$METADATA_DIR/package.json"
+          if ! download_file "package.json" "$PACKAGE_JSON_PATH"; then
+            rm -f "$PACKAGE_JSON_PATH"
+            PACKAGE_JSON_PATH=""
+            echo "::warning::Failed to download package.json from ${OWNER_AND_REPO}@${COMMIT_HASH}; using the broad node_modules cache path fallback."
+          fi
+        fi
+        write_output "package-json-path" "$PACKAGE_JSON_PATH"
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        CACHE_NODE_MODULES: ${{ inputs.cache-node-modules }}
+        INPUT_NODE_VERSION: ${{ inputs.node-version }}
+        IS_HIGH_RISK_ENVIRONMENT: ${{ inputs.is-high-risk-environment }}
+        OWNER_AND_REPO: ${{ github.repository }}
+        COMMIT_HASH: ${{ inputs.ref || github.sha }}
+        REPO_VISIBILITY: ${{ github.event.repository.visibility }}
+        SKIP_INSTALL: ${{ inputs.skip-install }}
+
     - name: Synthesize our node version from inputs.node-version and .nvmrc
       id: compute-node-version
       run: |
         # If inputs.node-version is not provided then use .nvmrc
         if [[ -z "$INPUT_NODE_VERSION" ]]; then
-          if [[ ! -s .nvmrc ]]; then
-            NVMRC_TMP_FILE="$(mktemp)"
-
-            # For public repositories, we can download the raw file directly from
-            # the GitHub URL. For private repositories, we need to use the GitHub
-            # CLI to authenticate and download the file. We don't use the GitHub
-            # CLI for public repositories because it's subject to the GitHub REST
-            # API rate limit, while the raw URL is served by a CDN that is not.
-            if [[ "$REPO_VISIBILITY" == "public" ]]; then
-              DOWNLOAD_SUCCEEDED=$(curl -sSf -o "$NVMRC_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/.nvmrc" && echo "true" || echo "false")
-            else
-              DOWNLOAD_SUCCEEDED=$(gh api "repos/${OWNER_AND_REPO}/contents/.nvmrc?ref=${COMMIT_HASH}" --header "Accept: application/vnd.github.raw+json" > "$NVMRC_TMP_FILE" && echo "true" || echo "false")
-            fi
-
-            if [[ "$DOWNLOAD_SUCCEEDED" == "true" ]]; then
-              mv "$NVMRC_TMP_FILE" .nvmrc
-            else
-              rm -f "$NVMRC_TMP_FILE"
-              echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input. Failed to download .nvmrc from ${OWNER_AND_REPO}@${COMMIT_HASH}"
-              exit 1
-            fi
+          if [[ ! -s "$NVMRC_FILE" ]]; then
+            echo "::error::You must either have a .nvmrc at the requested ref, or provide the node-version input."
+            exit 1
           fi
 
-          NODE_VERSION=$(tr -d '\r\n' < .nvmrc)
+          NODE_VERSION=$(tr -d '\r\n' < "$NVMRC_FILE")
         else
           NODE_VERSION="$INPUT_NODE_VERSION"
         fi
@@ -165,55 +242,62 @@ runs:
         echo "node-version=$NODE_VERSION" >> "$GITHUB_OUTPUT"
       shell: bash
       env:
-        GH_TOKEN: ${{ github.token }}
         INPUT_NODE_VERSION: ${{ inputs.node-version }}
-        OWNER_AND_REPO: ${{ github.repository }}
-        COMMIT_HASH: ${{ inputs.ref || github.sha }}
-        REPO_VISIBILITY: ${{ github.event.repository.visibility }}
+        NVMRC_FILE: ${{ steps.download-repository-metadata.outputs.nvmrc-path }}
 
-    - name: Download yarn.lock from current commit in attempt to skip setup
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && inputs.skip-install != 'true' }}
-      id: download-yarn-lock
+    - name: Compute node_modules cache paths
+      if: ${{ (inputs.is-high-risk-environment == 'false' || inputs.cache-node-modules == 'true') && inputs.skip-install != 'true' }}
+      id: compute-node-modules-cache-paths
       run: |
-        if [[ ! -s yarn.lock ]]; then
-          YARN_LOCK_TMP_FILE="$(mktemp)"
+        CACHE_PATHS_TMP_FILE="$(mktemp)"
 
-          # For public repositories, we can download the raw file directly from
-          # the GitHub URL. For private repositories, we need to use the GitHub
-          # CLI to authenticate and download the file. We don't use the GitHub
-          # CLI for public repositories because it's subject to the GitHub REST
-          # API rate limit, while the raw URL is served by a CDN that is not.
-          if [[ "$REPO_VISIBILITY" == "public" ]]; then
-            DOWNLOAD_SUCCEEDED=$(curl -sSf -o "$YARN_LOCK_TMP_FILE" "https://raw.githubusercontent.com/${OWNER_AND_REPO}/${COMMIT_HASH}/yarn.lock" && echo "true" || echo "false")
-          else
-            DOWNLOAD_SUCCEEDED=$(gh api "repos/${OWNER_AND_REPO}/contents/yarn.lock?ref=${COMMIT_HASH}" --header "Accept: application/vnd.github.raw+json" > "$YARN_LOCK_TMP_FILE" && echo "true" || echo "false")
-          fi
-
-          if [[ "$DOWNLOAD_SUCCEEDED" == "true" ]]; then
-            # Only overwrite yarn.lock on a successful download.
-            mv "$YARN_LOCK_TMP_FILE" yarn.lock
-          else
-            rm -f "$YARN_LOCK_TMP_FILE"
-            echo "::warning::Failed to download yarn.lock from ${OWNER_AND_REPO}@${COMMIT_HASH}"
-            exit 1
-          fi
+        if [[ -s "$PACKAGE_JSON_FILE" ]]; then
+          # Cache Yarn's install-state file, the root node_modules directory,
+          # and one node_modules directory per workspace pattern declared in
+          # package.json. Yarn can create package-local node_modules folders in
+          # monorepos, but walking every nested node_modules directory with
+          # **/node_modules is expensive in large installs.
+          {
+            echo ".yarn/install-state.gz"
+            echo "node_modules"
+            jq -r '
+              (.workspaces // [])
+              | if type == "array" then .
+                elif type == "object" then (.packages // [])
+                elif type == "string" then [.]
+                else []
+                end
+              | .[]
+              | "\(.)/node_modules"
+            ' "$PACKAGE_JSON_FILE"
+          } | awk 'NF && !seen[$0]++' > "$CACHE_PATHS_TMP_FILE"
+        else
+          {
+            echo ".yarn/install-state.gz"
+            echo "**/node_modules"
+          } > "$CACHE_PATHS_TMP_FILE"
         fi
+
+        # actions/cache accepts a newline-delimited list through a multiline
+        # output. Remove empty lines and duplicates above so the cache action
+        # gets stable paths even if package.json contains overlapping patterns.
+        {
+          echo "paths<<EOF"
+          cat "$CACHE_PATHS_TMP_FILE"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
+        rm -f "$CACHE_PATHS_TMP_FILE"
       shell: bash
-      continue-on-error: true
       env:
-        GH_TOKEN: ${{ github.token }}
-        OWNER_AND_REPO: ${{ github.repository }}
-        COMMIT_HASH: ${{ inputs.ref || github.sha }}
-        REPO_VISIBILITY: ${{ github.event.repository.visibility }}
+        PACKAGE_JSON_FILE: ${{ steps.download-repository-metadata.outputs.package-json-path }}
 
     - name: Try skipping setup if node-modules cache available
-      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-yarn-lock.outcome == 'success' && inputs.force-setup != 'true' && inputs.skip-install != 'true' }}
+      if: ${{ inputs.is-high-risk-environment == 'false' && inputs.cache-node-modules == 'true' && steps.download-repository-metadata.outputs.yarn-lock-available == 'true' && inputs.force-setup != 'true' && inputs.skip-install != 'true' }}
       id: try-skip-setup
       uses: actions/cache/restore@v6
       with:
-        path: |
-          .yarn/install-state.gz
-          node_modules
+        path: ${{ steps.compute-node-modules-cache-paths.outputs.paths }}
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
         lookup-only: true
 
@@ -266,9 +350,7 @@ runs:
       id: download-node-modules
       uses: actions/cache/restore@v6
       with:
-        path: |
-          .yarn/install-state.gz
-          node_modules
+        path: ${{ steps.compute-node-modules-cache-paths.outputs.paths }}
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
 
     - name: Conditionally restore action/setup-node cache
@@ -316,10 +398,8 @@ runs:
     # but we still save so that downstream PR jobs can read from the
     # main-branch cache scope (write-only mode).
     - name: Cache workspace
-      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && inputs.cache-node-modules == 'true' && inputs.skip-install != 'true' }}
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && steps.download-node-modules.outputs.cache-hit != 'true' && inputs.cache-node-modules == 'true' && inputs.skip-install != 'true' }}
       uses: actions/cache/save@v6
       with:
-        path: |
-          .yarn/install-state.gz
-          node_modules
+        path: ${{ steps.compute-node-modules-cache-paths.outputs.paths }}
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.compute-node-version.outputs.node-version }}-${{ hashFiles('yarn.lock') }}
