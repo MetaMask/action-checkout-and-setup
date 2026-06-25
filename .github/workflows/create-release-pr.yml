@@ -33,6 +33,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+      - run: corepack enable
       - uses: MetaMask/action-create-release-pr@v5
         with:
           release-type: ${{ github.event.inputs.release-type }}
