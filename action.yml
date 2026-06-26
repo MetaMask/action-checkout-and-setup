@@ -9,6 +9,10 @@ inputs:
     description: 'Depth of the Git history to fetch.'
     required: false
     default: '1'
+  filter:
+    description: 'Partially clone the repository with the given Git filter. This is passed to actions/checkout; for example, tree:0 performs a treeless partial clone.'
+    required: false
+    default: ''
   ref:
     description: 'Branch, tag, or SHA to checkout.'
     required: false
@@ -307,6 +311,7 @@ runs:
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' && hashFiles('.git') == '' }}
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
+        filter: ${{ inputs.filter }}
         ref: ${{ inputs.ref }}
         persist-credentials: ${{ inputs.persist-credentials }}
 
