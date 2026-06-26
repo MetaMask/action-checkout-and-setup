@@ -81,9 +81,11 @@ Defaults to the current ref.
 
 #### `cache-node-modules`
 
-If set to `true`, the action will cache the `node_modules` directory. This
-should only be enabled for a "prepare"-type job. This cannot be enabled in a
-high-risk environment.
+If set to `true`, the action will cache Yarn install state, the root
+`node_modules` directory, and any workspace-level `node_modules` directories
+derived from the root `package.json` `workspaces` field. This should only be
+enabled for a "prepare"-type job. In a high-risk environment, cache reads are
+disabled and this option only saves a cache for downstream low-risk jobs.
 
 Defaults to `false`.
 
@@ -119,8 +121,14 @@ Defaults to `false`.
 
 #### `force-setup`
 
-If set to `true`, the action will skip the cache and force the setup steps to
-run. This is useful for ensuring that the environment is set up correctly, even if there is a cache hit.
+If set to `true`, the action will force checkout, Node setup, and cache restore
+to run even if the `node_modules` cache exists. This is useful with
+`cache-node-modules: true` when later steps in the same job need a prepared
+workspace, for example to run `yarn` commands, inspect checked-out files, or
+publish outputs derived from the repository.
+
+Leave this as `false` only for cache-warming jobs where the job can safely end
+after confirming that the cache already exists.
 
 #### `skip-install`
 
