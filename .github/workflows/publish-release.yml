@@ -19,6 +19,9 @@ on:
       SLACK_WEBHOOK_URL:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   announce-release:
     name: Announce release
