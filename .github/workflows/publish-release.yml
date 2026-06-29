@@ -65,7 +65,8 @@ jobs:
     environment: npm-publish
     needs: announce-release
     permissions:
-      contents: write
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
