@@ -10,7 +10,7 @@ This TypeScript module is maintained in the style of the MetaMask team.
 
 ```yaml
 - name: Checkout and setup high risk environment
-  uses: MetaMask/action-checkout-and-setup@v1
+  uses: MetaMask/action-checkout-and-setup@v3
   with:
     is-high-risk-environment: true
 ```
@@ -19,7 +19,7 @@ This TypeScript module is maintained in the style of the MetaMask team.
 
 ```yaml
 - name: Checkout and setup
-  uses: MetaMask/action-checkout-and-setup@v1
+  uses: MetaMask/action-checkout-and-setup@v3
   with:
     is-high-risk-environment: false
 ```
@@ -28,20 +28,32 @@ This TypeScript module is maintained in the style of the MetaMask team.
 
 ```yaml
 - name: Checkout and setup
-  uses: MetaMask/action-checkout-and-setup@v1
+  uses: MetaMask/action-checkout-and-setup@v3
   with:
+    is-high-risk-environment: false
     ref: ${{ github.sha }}
     fetch-depth: 1
 ```
 
-#### Custom Yarn URL and Install Retries
+#### Partial clone filter
+
+```yaml
+- name: Checkout and setup with treeless full-history partial clone
+  uses: MetaMask/action-checkout-and-setup@v3
+  with:
+    is-high-risk-environment: false
+    fetch-depth: 0
+    filter: tree:0
+```
+
+#### Custom Yarn Tarball and Install Retries
 
 ```yaml
 - name: Checkout and setup with custom Yarn
-  uses: MetaMask/action-checkout-and-setup@v1
+  uses: MetaMask/action-checkout-and-setup@v3
   with:
     is-high-risk-environment: false
-    yarn-custom-url: 'https://your-cdn.com/yarn-4.9.1/yarn.js#sha224.abc123'
+    yarn-tarball: .yarn/yarn-corepack.tgz
     yarn-install-max-retries: 5
 ```
 
@@ -49,7 +61,7 @@ This TypeScript module is maintained in the style of the MetaMask team.
 
 ```yaml
 - name: Checkout and setup
-  uses: MetaMask/action-checkout-and-setup@v1
+  uses: MetaMask/action-checkout-and-setup@v3
   with:
     is-high-risk-environment: false
     cache-node-modules: true
@@ -71,7 +83,28 @@ environment. An environment is considered high-risk if (not exhaustive):
 
 The depth of commits to fetch.
 
-Defaults to `0`.
+Defaults to `1`.
+
+#### `filter`
+
+The Git partial clone filter to pass to `actions/checkout`. For example,
+`tree:0` performs a treeless partial clone, which can reduce checkout transfer
+size for jobs that do not need the full Git object graph.
+
+This is most likely to help jobs that check out a large repository but only
+read a small portion of the working tree, or jobs that run with shallow history
+and do not inspect many historical paths. It may have little benefit, or even
+add lazy-fetch overhead, for jobs that traverse most files, compare many paths
+across commits, generate broad file lists, or otherwise force Git to hydrate a
+large number of tree objects after checkout.
+
+Avoid combining `filter: tree:0` with the default `fetch-depth: 1`. A shallow
+checkout already avoids most historical tree objects, while treeless checkout
+can add lazy-fetch overhead while Git hydrates the current working tree. If you
+use `tree:0`, pair it with a workflow that needs deeper history, such as
+`fetch-depth: 0`, and benchmark the job before keeping it.
+
+Defaults to `''` (not set).
 
 #### `ref`
 
@@ -101,23 +134,19 @@ If set to `true`, the action will skip the `yarn allow-scripts` step. This can s
 
 Defaults to `false`.
 
-#### `yarn-custom-url`
+#### `yarn-tarball`
 
-If set, provides a custom URL for a Yarn bundle to be prepared and activated by Corepack. This is useful for CI environments that need to use a self-hosted or alternative Yarn bundle (for example, to avoid rate-limiting from the public Yarn registry).
+The path to a Yarn tarball to activate with Corepack, relative to the checked
+out repository. If the file exists, the action runs `corepack hydrate` with this
+tarball before installing dependencies.
 
-Defaults to `''` (not set).
+Defaults to `.yarn/yarn-corepack.tgz`.
 
 #### `yarn-install-max-retries`
 
 Sets the maximum number of retries for the `yarn --immutable` install command. This helps handle transient network errors more gracefully in CI environments.
 
 Defaults to `5`.
-
-#### `use-yarn-hydrate`
-
-If set to `true`, the action will use a yarn hydration command instead of downloading yarn from a URL. When enabled, this skips the custom yarn URL download step and runs the specified hydration command instead. This is useful when your repository has a local yarn binary that can be hydrated.
-
-Defaults to `false`.
 
 #### `force-setup`
 
@@ -129,6 +158,15 @@ publish outputs derived from the repository.
 
 Leave this as `false` only for cache-warming jobs where the job can safely end
 after confirming that the cache already exists.
+
+Defaults to `false`.
+
+#### `persist-credentials`
+
+Whether to persist the GitHub token in the checked-out repository. This is
+passed to `actions/checkout`.
+
+Defaults to `true`.
 
 #### `skip-install`
 
