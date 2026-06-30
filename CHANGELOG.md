@@ -12,13 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New `filter` input to pass through `filter: tree:0` ([#81](https://github.com/MetaMask/action-checkout-and-setup/pull/81))
-- Better and faster monorepo support ([#80](https://github.com/MetaMask/action-checkout-and-setup/pull/80))
+- Cache only the root node_modules to make prep-deps significantly faster, with monorepo support ([#80](https://github.com/MetaMask/action-checkout-and-setup/pull/80))
 
 ### Changed
 
-- Dependabot updated js-yaml from 3.14.2 to 3.15.0 ([#83](https://github.com/MetaMask/action-checkout-and-setup/pull/83))
-- Cache only the root node_modules to make prep-deps significantly faster ([#78](https://github.com/MetaMask/action-checkout-and-setup/pull/78))
-- Updated everything to the latest versions ([#76](https://github.com/MetaMask/action-checkout-and-setup/pull/76))
+- Updated all dependencies and actions to the latest versions, with the more secure actions/checkout@v7 ([#76](https://github.com/MetaMask/action-checkout-and-setup/pull/76))
 
 ## [3.4.0]
 
