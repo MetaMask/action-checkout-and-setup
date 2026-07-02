@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New `filter` input to pass through `filter: tree:0` ([#81](https://github.com/MetaMask/action-checkout-and-setup/pull/81))
-- Cache only the root node_modules to make prep-deps significantly faster, with monorepo support ([#80](https://github.com/MetaMask/action-checkout-and-setup/pull/80))
+- Cache only the root `node_modules` folder to make caching significantly faster, with monorepo support ([#80](https://github.com/MetaMask/action-checkout-and-setup/pull/80))
 
 ### Changed
 
