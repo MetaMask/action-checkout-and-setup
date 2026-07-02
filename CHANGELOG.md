@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0]
+
+### Added
+
+- New `filter` input to pass through `filter: tree:0` ([#81](https://github.com/MetaMask/action-checkout-and-setup/pull/81))
+- Cache only the root `node_modules` folder to make caching significantly faster, with monorepo support ([#80](https://github.com/MetaMask/action-checkout-and-setup/pull/80))
+
+### Changed
+
+- Updated all dependencies and actions to the latest versions, with the more secure actions/checkout@v7 ([#76](https://github.com/MetaMask/action-checkout-and-setup/pull/76))
+
 ## [3.4.0]
 
 ### Added
@@ -37,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Allow high-risk the option to save cache without reading cache (#64)
+- Allow high-risk the option to save cache without reading cache ([#64](https://github.com/MetaMask/action-checkout-and-setup/pull/64))
 
 ## [3.1.0]
 
@@ -55,8 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **BREAKING**: Security fix, removes the inputs yarn-custom-url, use-yarn-hydrate, and yarn-hydrate-command -- replaced with yarn-tarball (#57)
-- **BREAKING**: Made things faster when there's a cache hit, but now _requires_ either .nvmrc or inputs.node-version (#54)
+- **BREAKING**: Security fix, removes the inputs yarn-custom-url, use-yarn-hydrate, and yarn-hydrate-command -- replaced with yarn-tarball ([#57](https://github.com/MetaMask/action-checkout-and-setup/pull/57))
+- **BREAKING**: Made things faster when there's a cache hit, but now _requires_ either .nvmrc or inputs.node-version ([#54](https://github.com/MetaMask/action-checkout-and-setup/pull/54))
 
 ## [2.0.1]
 
@@ -129,7 +140,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.1...v3.4.0
 [3.3.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.0...v3.3.1
 [3.3.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.2.0...v3.3.0
