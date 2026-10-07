@@ -177,6 +177,13 @@ manages its own dependency installation.
 
 Defaults to `false`.
 
+#### `wiz-sensor-enabled`
+
+Pass `vars.WIZ_SENSOR_ENABLED`. The sensor starts only when this is the string
+`true`. Any other value, including an empty value, skips it. That organization
+variable is the off switch. A composite action cannot read `vars` itself, so
+the calling workflow passes the value in.
+
 #### `wiz-sensor-token`
 
 Optional JSON token for the Wiz GitHub runner sensor (`secrets.WIZ_SENSOR_TOKEN`).
@@ -184,9 +191,7 @@ The sensor is the first step of this action. It starts only when all of these
 are true:
 
 - The runner OS is Linux.
-- The organization variable `WIZ_SENSOR_ENABLED` is the string `true`. Any
-  other value, including an unset variable, skips it. That variable is the off
-  switch.
+- `wiz-sensor-enabled` is the string `true`.
 - `wiz-sensor-token` is set.
 
 A failure while starting the sensor does not fail the job. Jobs that do not
@@ -205,6 +210,7 @@ use this action can call the same step directly:
   uses: MetaMask/action-checkout-and-setup@v3
   with:
     is-high-risk-environment: false
+    wiz-sensor-enabled: ${{ vars.WIZ_SENSOR_ENABLED }}
     wiz-sensor-token: ${{ secrets.WIZ_SENSOR_TOKEN }}
 ```
 
