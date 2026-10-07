@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add optional `wiz-sensor-token` input that starts the Wiz GitHub runner sensor when the organization variable `WIZ_SENSOR_ENABLED` is `true`
+
 ## [3.5.0]
 
 ### Added
