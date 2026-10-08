@@ -83,7 +83,7 @@ runs:
     - name: Start Wiz sensor
       if: runner.os == 'Linux' && inputs.enabled == 'true' && inputs.token != '' && steps.mask-wiz-sensor-token.outcome == 'success'
       continue-on-error: true
-      uses: wiz-sec-public/wiz-sensor-github-action@2f72488477988739561233bbc10ceff0c53273fd # main, 2026-09-30
+      uses: wiz-sec-public/wiz-sensor-github-action@2fd38e4d101f185b1deb0c313c0adb0a7efdfe62 # v0.9.6
       with:
         token: ${{ inputs.token }}
         tag: github_runner_private_preview
