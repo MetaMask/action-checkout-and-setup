@@ -85,75 +85,15 @@ runs:
     # vars.WIZ_SENSOR_ENABLED in. A composite action cannot read vars itself.
     # This repo's own workflows must not pass the token. They run this action
     # from ./ on pull_request, which would execute the pull request's copy.
-    # The steps are inlined because a local `uses: ./...` in a composite action
-    # resolves against the caller's workspace, which is empty before checkout.
-    - name: Skip Wiz sensor
-      if: runner.os != 'Linux' || inputs.wiz-sensor-enabled != 'true' || inputs.wiz-sensor-token == ''
-      shell: bash
-      env:
-        WIZ_SENSOR_ENABLED: ${{ inputs.wiz-sensor-enabled }}
-        WIZ_RUNNER_OS: ${{ runner.os }}
-      run: |
-        if [ "$WIZ_RUNNER_OS" != "Linux" ]; then
-          echo "::notice title=Wiz sensor::Skipped because the runner OS is ${WIZ_RUNNER_OS}."
-        elif [ "$WIZ_SENSOR_ENABLED" != "true" ]; then
-          echo "::notice title=Wiz sensor::Skipped because WIZ_SENSOR_ENABLED is not true."
-        else
-          echo "::notice title=Wiz sensor::Skipped because WIZ_SENSOR_TOKEN is not set."
-        fi
-
-    # The pinned action puts parsed token fields in `docker run --env` and
-    # includes that command line in the error it throws. GitHub masks the
-    # JSON secret as a whole, not those fields, so register them first.
-    - name: Mask Wiz sensor token fields
-      id: mask-wiz-sensor-token
-      if: runner.os == 'Linux' && inputs.wiz-sensor-enabled == 'true' && inputs.wiz-sensor-token != ''
-      continue-on-error: true
-      shell: bash
-      env:
-        WIZ_SENSOR_TOKEN: ${{ inputs.wiz-sensor-token }}
-      run: |
-        node <<'NODE'
-        const raw = process.env.WIZ_SENSOR_TOKEN || "";
-        let token;
-        try {
-          token = JSON.parse(raw);
-        } catch {
-          console.log("::notice title=Wiz sensor::Token is not JSON, so no field masks were registered.");
-          process.exit(0);
-        }
-        if (token === null || typeof token !== "object" || Array.isArray(token)) {
-          console.log("::notice title=Wiz sensor::Token is not a JSON object, so no field masks were registered.");
-          process.exit(0);
-        }
-        const keys = [
-          "registry-username",
-          "registry-password",
-          "wiz-api-client-id",
-          "wiz-api-client-secret",
-        ];
-        for (const key of keys) {
-          const value = token[key];
-          if (typeof value !== "string" || value.length === 0) {
-            continue;
-          }
-          const encoded = value
-            .replace(/%/g, "%25")
-            .replace(/\r/g, "%0D")
-            .replace(/\n/g, "%0A");
-          process.stdout.write(`::add-mask::${encoded}\n`);
-        }
-        NODE
-
-    - name: Start Wiz sensor
-      if: runner.os == 'Linux' && inputs.wiz-sensor-enabled == 'true' && inputs.wiz-sensor-token != '' && steps.mask-wiz-sensor-token.outcome == 'success'
-      continue-on-error: true
-      uses: wiz-sec-public/wiz-sensor-github-action@2f72488477988739561233bbc10ceff0c53273fd # main, 2026-09-30
+    # `$/` is the self-repository reference: this repository at the commit that
+    # is running, so the sub-action always matches the revision the caller
+    # pinned. A local `./` path would resolve against the caller's workspace,
+    # which is empty before checkout. Needs runner 2.336.0 or newer.
+    - name: Wiz sensor
+      uses: $/.github/actions/wiz-sensor
       with:
+        enabled: ${{ inputs.wiz-sensor-enabled }}
         token: ${{ inputs.wiz-sensor-token }}
-        tag: github_runner_private_preview
-        wait-for-ready: "true"
-        allow-self-hosted: "false"
 
     # The "required: true" field is not enforced by GitHub, so we need to check
     # it manually.

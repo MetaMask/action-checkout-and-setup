@@ -194,7 +194,19 @@ are true:
 - `wiz-sensor-enabled` is the string `true`.
 - `wiz-sensor-token` is set.
 
-A failure while starting the sensor does not fail the job.
+The sensor is a sub-action in this repository, referenced with `$/`, so it
+always matches the revision of this action that the caller pinned. That needs
+runner version 2.336.0 or newer. A failure while starting the sensor does not
+fail the job. Jobs that do not
+use this action can call the same step directly:
+
+```yaml
+- name: Wiz sensor
+  uses: MetaMask/action-checkout-and-setup/.github/actions/wiz-sensor@v3
+  with:
+    enabled: ${{ vars.WIZ_SENSOR_ENABLED }}
+    token: ${{ secrets.WIZ_SENSOR_TOKEN }}
+```
 
 ```yaml
 - name: Checkout and setup
