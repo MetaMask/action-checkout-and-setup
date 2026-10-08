@@ -49,6 +49,14 @@ inputs:
     description: 'Skip all Yarn install steps. The repository is still checked out and Node.js is still set up, but dependencies are not installed.'
     required: false
     default: 'false'
+  wiz-sensor-enabled:
+    description: 'Value of vars.WIZ_SENSOR_ENABLED. The sensor starts only when this is the string true. A composite action cannot read vars itself, so the caller passes it. An empty value skips the sensor.'
+    required: false
+    default: ''
+  wiz-sensor-token:
+    description: 'Wiz GitHub runner sensor JSON token, from secrets.WIZ_SENSOR_TOKEN. The sensor starts only on Linux, and only when this is set and wiz-sensor-enabled is the string true. An empty value skips the sensor. A sensor failure does not fail the job.'
+    required: false
+    default: ''
 
 # The outputs are for the unit tests in `build-lint-test.yml`, and
 # probably not useful for other workflows.
@@ -72,6 +80,21 @@ outputs:
 runs:
   using: composite
   steps:
+    # INFRA-4106. Same off switch as the CVA shared workflows: only the string
+    # "true" enables the sensor, and a missing token skips it. Callers pass
+    # vars.WIZ_SENSOR_ENABLED in. A composite action cannot read vars itself.
+    # This repo's own workflows must not pass the token. They run this action
+    # from ./ on pull_request, which would execute the pull request's copy.
+    # `$/` is the self-repository reference: this repository at the commit that
+    # is running, so the sub-action always matches the revision the caller
+    # pinned. A local `./` path would resolve against the caller's workspace,
+    # which is empty before checkout. Needs runner 2.336.0 or newer.
+    - name: Wiz sensor
+      uses: $/.github/actions/wiz-sensor
+      with:
+        enabled: ${{ inputs.wiz-sensor-enabled }}
+        token: ${{ inputs.wiz-sensor-token }}
+
     # The "required: true" field is not enforced by GitHub, so we need to check
     # it manually.
     - name: Enforce required input is either "true" or "false"
