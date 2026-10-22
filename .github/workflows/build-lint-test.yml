@@ -281,19 +281,64 @@ jobs:
   test-custom-node-version:
     name: Test custom Node.js version
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['20.x', '24', 'v24.22', '24.22.x', '24.22.1', 'v24.22.1']
+        source: [input, nvmrc]
+        exclude:
+          - node-version: '20.x'
+            source: nvmrc
+          - node-version: '24'
+            source: nvmrc
+          - node-version: 'v24.22'
+            source: nvmrc
+          - node-version: '24.22.x'
+            source: nvmrc
     steps:
       - uses: actions/checkout@v7
+
+      - name: Preload an older Node.js patch
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.22.0'
+
+      - name: Set .nvmrc version
+        if: ${{ matrix.source == 'nvmrc' }}
+        env:
+          NODE_VERSION: ${{ matrix.node-version }}
+        shell: bash
+        run: printf '%s\n' "$NODE_VERSION" > .nvmrc
 
       - name: Checkout and setup environment
         id: checkout-and-setup
         uses: ./
         with:
           is-high-risk-environment: false
-          node-version: 20.x
+          node-version: ${{ matrix.source == 'input' && matrix.node-version || '' }}
+          skip-install: true
 
       - name: Ensure correct Node.js version
-        if: ${{ !contains(steps.checkout-and-setup.outputs.node-version, '20.') }}
-        run: node --version && exit 1
+        env:
+          REQUESTED_NODE_VERSION: ${{ matrix.node-version }}
+          COMPUTED_NODE_VERSION: ${{ steps.checkout-and-setup.outputs.computed-node-version }}
+          ACTUAL_NODE_VERSION: ${{ steps.checkout-and-setup.outputs.node-version }}
+        shell: bash
+        run: |
+          expected_version="${REQUESTED_NODE_VERSION#v}"
+          expected_version="${expected_version%.x}"
+          computed_version="v$(printf '%s\n' "$expected_version" | cut -d. -f1-2)"
+          if [[ "$COMPUTED_NODE_VERSION" != "$computed_version" ]]; then
+            echo "Expected computed version $computed_version, got $COMPUTED_NODE_VERSION"
+            exit 1
+          fi
+          if [[ "$ACTUAL_NODE_VERSION" != "$expected_version" && "$ACTUAL_NODE_VERSION" != "$expected_version".* ]]; then
+            echo "Expected Node.js $expected_version, got $ACTUAL_NODE_VERSION"
+            exit 1
+          fi
+          if [[ "$(node --version)" != "v$ACTUAL_NODE_VERSION" ]]; then
+            echo 'Node.js on PATH does not match the action output'
+            exit 1
+          fi
 
   test-skip-install:
     name: Test skip-install

@@ -126,6 +126,10 @@ Defaults to `false`.
 
 The version of Node.js to use.
 
+Exact patch versions are preserved when selecting Node.js, whether specified
+through this input or `.nvmrc`. The `node_modules` cache key continues to use
+only the major and minor version.
+
 Defaults to the version specified in the `.nvmrc` file.
 
 #### `skip-allow-scripts`
