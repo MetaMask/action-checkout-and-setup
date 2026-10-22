@@ -326,16 +326,17 @@ jobs:
         run: |
           expected_version="${REQUESTED_NODE_VERSION#v}"
           expected_version="${expected_version%.x}"
+          actual_version="${ACTUAL_NODE_VERSION#v}"
           computed_version="v$(printf '%s\n' "$expected_version" | cut -d. -f1-2)"
           if [[ "$COMPUTED_NODE_VERSION" != "$computed_version" ]]; then
             echo "Expected computed version $computed_version, got $COMPUTED_NODE_VERSION"
             exit 1
           fi
-          if [[ "$ACTUAL_NODE_VERSION" != "$expected_version" && "$ACTUAL_NODE_VERSION" != "$expected_version".* ]]; then
+          if [[ "$actual_version" != "$expected_version" && "$actual_version" != "$expected_version".* ]]; then
             echo "Expected Node.js $expected_version, got $ACTUAL_NODE_VERSION"
             exit 1
           fi
-          if [[ "$(node --version)" != "v$ACTUAL_NODE_VERSION" ]]; then
+          if [[ "$(node --version)" != "v$actual_version" ]]; then
             echo 'Node.js on PATH does not match the action output'
             exit 1
           fi
