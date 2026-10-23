@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Now downloads the latest Node.js patch ([#94](https://github.com/MetaMask/action-checkout-and-setup/pull/94))
+
 ## [3.5.0]
 
 ### Added
