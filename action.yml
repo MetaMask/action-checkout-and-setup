@@ -216,8 +216,8 @@ runs:
         # Normalize wildcard inputs like "24.x" and "24.22.x" to "v24" and "v24.22".
         # We use the computed version as part of a cache key, and the patch/minor
         # part of an "X.x" range isn't stable or meaningful for that purpose.
-        if [[ "$NODE_VERSION" =~ ^v[0-9]+(\.[0-9]+)?\.x$ ]]; then
-          NODE_VERSION="${NODE_VERSION%.x}"
+        if [[ "$NODE_VERSION" =~ ^v[0-9]+(\.[0-9]+)?\.[xX*]$ ]]; then
+          NODE_VERSION="${NODE_VERSION%.[xX*]}"
         fi
 
         # If it's "lts/*", fetch "https://nodejs.org/download/release/index.json" and find the first version with "lts" not equal to false

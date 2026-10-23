@@ -283,7 +283,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['20.x', '24', 'v24.22', '24.22.x', '24.22.1', 'v24.22.1']
+        node-version:
+          [
+            '20.x',
+            '24',
+            'v24.22',
+            '24.22.x',
+            '24.22.X',
+            '24.22.*',
+            '24.22.1',
+            'v24.22.1',
+          ]
         source: [input, nvmrc]
         exclude:
           - node-version: '20.x'
@@ -325,7 +335,7 @@ jobs:
         shell: bash
         run: |
           expected_version="${REQUESTED_NODE_VERSION#v}"
-          expected_version="${expected_version%.x}"
+          expected_version="${expected_version%.[xX*]}"
           actual_version="${ACTUAL_NODE_VERSION#v}"
           computed_version="v$(printf '%s\n' "$expected_version" | cut -d. -f1-2)"
           if [[ "$COMPUTED_NODE_VERSION" != "$computed_version" ]]; then
