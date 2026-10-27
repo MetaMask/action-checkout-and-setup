@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.2]
+
 ### Changed
 
 - Resolve the latest Node.js patch from nodejs.org instead of using `check-latest` in `actions/setup-node`, to avoid GitHub API rate limits ([#96](https://github.com/MetaMask/action-checkout-and-setup/pull/96))
@@ -150,7 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `MetaMask/action-checkout-and-setup` ([#9](https://github.com/MetaMask/action-checkout-and-setup/pull/9))
 
-[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.5.1...HEAD
+[Unreleased]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.5.2...HEAD
+[3.5.2]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.5.1...v3.5.2
 [3.5.1]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.5.0...v3.5.1
 [3.5.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/MetaMask/action-checkout-and-setup/compare/v3.3.1...v3.4.0
