@@ -231,7 +231,9 @@ runs:
         # If it's "lts/*", fetch "https://nodejs.org/download/release/index.json" and find the first version with "lts" not equal to false
         # (We cannot run `nvm ls-remote --lts` because nvm is not yet installed)
         if [[ "$NODE_VERSION" == "lts/*" ]]; then
-          NODE_VERSION=$(curl -s https://nodejs.org/download/release/index.json | jq -r '[.[] | select(.lts != false)][0].version')
+          # The index is saved so the "Resolve latest Node.js patch version" step can reuse it.
+          curl -fsS --retry 3 -o "$NODE_INDEX_FILE" https://nodejs.org/download/release/index.json
+          NODE_VERSION=$(jq -r '[.[] | select(.lts != false)][0].version' "$NODE_INDEX_FILE")
         fi
 
         # Cut NODE_VERSION to the major and minor version (e.g. "v24.13")
@@ -248,6 +250,7 @@ runs:
       env:
         INPUT_NODE_VERSION: ${{ inputs.node-version }}
         NVMRC_FILE: ${{ steps.download-repository-metadata.outputs.nvmrc-path }}
+        NODE_INDEX_FILE: ${{ runner.temp }}/node-release-index.json
 
     - name: Compute node_modules cache paths
       if: ${{ (inputs.is-high-risk-environment == 'false' || inputs.cache-node-modules == 'true') && inputs.skip-install != 'true' }}
@@ -315,13 +318,37 @@ runs:
         ref: ${{ inputs.ref }}
         persist-credentials: ${{ inputs.persist-credentials }}
 
+    - name: Resolve latest Node.js patch version
+      if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
+      id: resolve-node-version
+      run: |
+        # Reuse the release index if the "lts/*" lookup already downloaded it.
+        if [[ ! -s "$NODE_INDEX_FILE" ]]; then
+          curl -fsS --retry 3 -o "$NODE_INDEX_FILE" https://nodejs.org/download/release/index.json
+        fi
+
+        RESOLVED_VERSION=$(
+          jq -r --arg prefix "$COMPUTED_NODE_VERSION." \
+            '[.[].version | select(startswith($prefix))][0]' "$NODE_INDEX_FILE"
+        )
+
+        if [[ -z "$RESOLVED_VERSION" || "$RESOLVED_VERSION" == "null" ]]; then
+          echo "::error::Could not find a Node.js release matching $COMPUTED_NODE_VERSION."
+          exit 1
+        fi
+
+        echo "node-version=${RESOLVED_VERSION#v}" >> "$GITHUB_OUTPUT"
+      shell: bash
+      env:
+        COMPUTED_NODE_VERSION: ${{ steps.compute-node-version.outputs.node-version }}
+        NODE_INDEX_FILE: ${{ runner.temp }}/node-release-index.json
+
     - name: Set up Node.js
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
       uses: actions/setup-node@v6
       id: setup-node
       with:
-        node-version: ${{ steps.compute-node-version.outputs.node-version }}
-        check-latest: true
+        node-version: ${{ steps.resolve-node-version.outputs.node-version }}
 
     - name: Print Node.js version
       if: ${{ steps.try-skip-setup.outputs.cache-hit != 'true' }}
